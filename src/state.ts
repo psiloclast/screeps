@@ -1,37 +1,69 @@
 import { ValuesType } from "utils/types";
 
-export const build = (targetId: string) =>
+export const closestTarget = (find: FindConstant) =>
+  ({
+    type: "closest",
+    find,
+  } as const);
+
+export const specificTarget = (targetId: string) =>
+  ({
+    type: "specific",
+    targetId,
+  } as const);
+
+export type TargetDescription =
+  | ReturnType<typeof closestTarget>
+  | ReturnType<typeof specificTarget>;
+
+export const build = (
+  target: TargetDescription,
+  idleZone: { x: number; y: number },
+) =>
   ({
     type: "build",
-    targetId
+    target,
+    idleZone,
   } as const);
 
-export const harvest = (targetId: string) =>
+export const harvest = (target: TargetDescription) =>
   ({
     type: "harvest",
-    targetId
+    target,
   } as const);
 
-export const transfer = (targetId: string) =>
+export const repair = (
+  target: TargetDescription,
+  idleZone: { x: number; y: number },
+) =>
+  ({
+    type: "repair",
+    target,
+    idleZone,
+  } as const);
+
+export const transfer = (target: TargetDescription) =>
   ({
     type: "transfer",
-    targetId
+    target,
   } as const);
 
-export const upgrade = (targetId: string) =>
+export const upgrade = (target: TargetDescription) =>
   ({
     type: "upgrade",
-    targetId
+    target,
   } as const);
 
 export type BuildAction = ReturnType<typeof build>;
 export type HarvestAction = ReturnType<typeof harvest>;
+export type RepairAction = ReturnType<typeof repair>;
 export type TransferAction = ReturnType<typeof transfer>;
 export type UpgradeAction = ReturnType<typeof upgrade>;
 
 export type Action =
   | BuildAction
   | HarvestAction
+  | RepairAction
   | TransferAction
   | UpgradeAction;
 
@@ -39,12 +71,12 @@ export type ActionType = ValuesType<Pick<Action, "type">>;
 
 export const isEmpty = () =>
   ({
-    type: "isEmpty"
+    type: "isEmpty",
   } as const);
 
 export const isFull = () =>
   ({
-    type: "isFull"
+    type: "isFull",
   } as const);
 
 export type IsEmptyEvent = ReturnType<typeof isEmpty>;
@@ -57,7 +89,7 @@ export type EventType = ValuesType<Pick<Event, "type">>;
 export const transition = (stateId: number, event: Event) =>
   ({
     stateId,
-    event
+    event,
   } as const);
 
 export type Transition = ReturnType<typeof transition>;
@@ -65,7 +97,7 @@ export type Transition = ReturnType<typeof transition>;
 export const state = (action: Action, transitions: Transition[]) =>
   ({
     action,
-    transitions
+    transitions,
   } as const);
 
 export type State = ReturnType<typeof state>;

@@ -5,11 +5,12 @@ export type Entries<T> = {
 
 // https://github.com/piotrwitek/utility-types/blob/master/src/mapped-types.ts#L562
 export type ValuesType<
-  T extends ReadonlyArray<any> | ArrayLike<any> | Record<any, any>
-> = T extends ReadonlyArray<any>
+  T extends readonly any[] | ArrayLike<any> | Record<any, any>
+> = T extends readonly any[]
   ? T[number]
   : T extends ArrayLike<any>
   ? T[number]
-  : T extends object
+  : // eslint-disable-next-line @typescript-eslint/ban-types
+  T extends object
   ? T[keyof T]
   : never;
