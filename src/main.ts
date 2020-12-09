@@ -1,21 +1,27 @@
 import {
   Action,
   BuildAction,
-  EventType,
+  Event,
   HarvestAction,
+  IdleAction,
+  NoTargetAvailable,
   RepairAction,
   State,
+  TargetAvailable,
   TargetDescription,
   TransferAction,
   UpgradeAction,
   build,
   closestTarget,
   harvest,
+  idle,
   isEmpty,
   isFull,
+  noTargetAvailable,
   repair,
   specificTarget,
   state,
+  targetAvailable,
   transfer,
   transition,
   upgrade,
@@ -31,14 +37,15 @@ const setCreepState = (creep: Creep, stateId: number) => {
   creep.memory.currentStateId = stateId;
 };
 
-const getTarget = (
-  target: TargetDescription,
-  creep: Creep,
-  opts?: { filter: (x: any) => boolean },
-) => {
+const getTarget = (target: TargetDescription, creep: Creep) => {
   switch (target.type) {
-    case "closest":
+    case "closest": {
+      let opts;
+      if (target.filter === "lowHits") {
+        opts = { filter: (t: Structure) => t.hits / t.hitsMax < 1.0 };
+      }
       return creep.pos.findClosestByPath(target.find, opts);
+    }
     case "specific":
       return Game.getObjectById(target.targetId);
   }
@@ -46,10 +53,6 @@ const getTarget = (
 
 const runBuild = (action: BuildAction) => (creep: Creep) => {
   const target = getTarget(action.target, creep) as ConstructionSite;
-  if (target === null) {
-    creep.moveTo(action.idleZone.x, action.idleZone.y);
-    return;
-  }
   if (creep.build(target) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" } });
     return;
@@ -63,16 +66,14 @@ const runHarvest = (action: HarvestAction) => (creep: Creep) => {
   }
 };
 
+const runIdle = (action: IdleAction) => (creep: Creep) => {
+  creep.moveTo(action.position.x, action.position.y, {
+    visualizePathStyle: { stroke: "#ffffff" },
+  });
+};
+
 const runRepair = (action: RepairAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep, {
-    filter: (t: Structure) => t.hits / t.hitsMax < 1.0,
-  }) as Structure;
-  if (target === null) {
-    creep.moveTo(action.idleZone.x, action.idleZone.y, {
-      visualizePathStyle: { stroke: "#ffffff" },
-    });
-    return;
-  }
+  const target = getTarget(action.target, creep) as Structure;
   if (creep.repair(target) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" } });
   }
@@ -104,6 +105,8 @@ const runAction = (action: Action): ActionRunner => {
       return runBuild(action);
     case "harvest":
       return runHarvest(action);
+    case "idle":
+      return runIdle(action);
     case "repair":
       return runRepair(action);
     case "transfer":
@@ -113,21 +116,45 @@ const runAction = (action: Action): ActionRunner => {
   }
 };
 
-type EventChecker = (creep: Creep) => boolean;
+const checkIsEmpty = (creep: Creep): boolean =>
+  creep.store[RESOURCE_ENERGY] === 0;
 
-const checkIsEmpty = (creep: Creep) => creep.store[RESOURCE_ENERGY] === 0;
-
-const checkIsFull = (creep: Creep) =>
+const checkIsFull = (creep: Creep): boolean =>
   creep.store.getFreeCapacity("energy") === 0;
 
-const eventCheckers: Record<EventType, EventChecker> = {
-  isEmpty: checkIsEmpty,
-  isFull: checkIsFull,
+const checkTargetAvailable = (event: TargetAvailable) => (
+  creep: Creep,
+): boolean => {
+  const target = closestTarget(event.find, event.filter);
+  return getTarget(target, creep) !== null;
+};
+
+const checkNoTargetAvailable = (event: NoTargetAvailable) => (
+  creep: Creep,
+): boolean => {
+  const target = closestTarget(event.find, event.filter);
+  return getTarget(target, creep) === null;
+};
+
+type EventChecker = (creep: Creep) => boolean;
+
+const checkEvent = (event: Event): EventChecker => {
+  switch (event.type) {
+    case "isEmpty":
+      return checkIsEmpty;
+    case "isFull":
+      return checkIsFull;
+    case "targetAvailable": {
+      return checkTargetAvailable(event);
+    }
+    case "noTargetAvailable":
+      return checkNoTargetAvailable(event);
+  }
 };
 
 const checkEvents = (creep: Creep) => {
   const eventRan = getCreepState(creep).transitions.find(t =>
-    eventCheckers[t.event.type](creep),
+    checkEvent(t.event)(creep),
   );
   return eventRan && eventRan.stateId;
 };
@@ -160,11 +187,15 @@ const config: Config = {
     "builder-1": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(1, isFull()),
+        state(idle({ x: 19, y: 4 }), [
+          transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
         ]),
-        state(build(closestTarget(FIND_CONSTRUCTION_SITES), { x: 19, y: 2 }), [
-          transition(0, isEmpty()),
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(2, isFull()),
+        ]),
+        state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
+          transition(1, isEmpty()),
+          transition(0, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
         ]),
       ],
       memory: {
@@ -174,13 +205,16 @@ const config: Config = {
     "builder-2": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(1, isFull()),
+        state(idle({ x: 19, y: 3 }), [
+          transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
         ]),
-        state(
-          build(closestTarget(FIND_MY_CONSTRUCTION_SITES), { x: 19, y: 3 }),
-          [transition(0, isEmpty())],
-        ),
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(2, isFull()),
+        ]),
+        state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
+          transition(1, isEmpty()),
+          transition(0, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
+        ]),
       ],
       memory: {
         currentStateId: 0,
@@ -189,11 +223,15 @@ const config: Config = {
     "repairer-1": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(1, isFull()),
+        state(idle({ x: 20, y: 2 }), [
+          transition(2, targetAvailable(FIND_STRUCTURES, "lowHits")),
         ]),
-        state(repair(closestTarget(FIND_STRUCTURES), { x: 20, y: 2 }), [
-          transition(0, isEmpty()),
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(2, isFull()),
+        ]),
+        state(repair(closestTarget(FIND_STRUCTURES, "lowHits")), [
+          transition(1, isEmpty()),
+          transition(0, noTargetAvailable(FIND_STRUCTURES, "lowHits")),
         ]),
       ],
       memory: {
