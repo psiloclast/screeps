@@ -24,7 +24,8 @@ import {
 import { ErrorMapper } from "utils/ErrorMapper";
 
 const getCreepState = (creep: Creep): State =>
-  creep.memory.states[creep.memory.currentStateId];
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  config.creeps[creep.name].states[creep.memory.currentStateId];
 
 const setCreepState = (creep: Creep, stateId: number) => {
   creep.memory.currentStateId = stateId;
@@ -141,181 +142,164 @@ const runCreep = (creep: Creep) => {
 };
 
 interface CreepData {
-  name: string;
   body: BodyPartConstant[];
+  states: State[];
   memory: {
     currentStateId: number;
-    states: State[];
   };
 }
 
 interface Config {
-  creeps: CreepData[];
+  creeps: {
+    [name: string]: CreepData;
+  };
 }
 
 const config: Config = {
-  creeps: [
-    {
-      name: "builder-1",
+  creeps: {
+    "builder-1": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(1, isFull()),
+        ]),
+        state(build(closestTarget(FIND_CONSTRUCTION_SITES), { x: 19, y: 2 }), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-            transition(1, isFull()),
-          ]),
-          state(
-            build(closestTarget(FIND_CONSTRUCTION_SITES), { x: 19, y: 2 }),
-            [transition(0, isEmpty())],
-          ),
-        ],
       },
     },
-    {
-      name: "builder-2",
+    "builder-2": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(1, isFull()),
+        ]),
+        state(
+          build(closestTarget(FIND_MY_CONSTRUCTION_SITES), { x: 19, y: 3 }),
+          [transition(0, isEmpty())],
+        ),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-            transition(1, isFull()),
-          ]),
-          state(
-            build(closestTarget(FIND_MY_CONSTRUCTION_SITES), { x: 19, y: 3 }),
-            [transition(0, isEmpty())],
-          ),
-        ],
       },
     },
-    {
-      name: "repairer-1",
+    "repairer-1": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(1, isFull()),
+        ]),
+        state(repair(closestTarget(FIND_STRUCTURES), { x: 20, y: 2 }), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-            transition(1, isFull()),
-          ]),
-          state(repair(closestTarget(FIND_STRUCTURES), { x: 20, y: 2 }), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-    {
-      name: "upgrader-1",
+    "upgrader-1": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
+          transition(1, isFull()),
+        ]),
+        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-            transition(1, isFull()),
-          ]),
-          state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-    {
-      name: "upgrader-2",
+    "upgrader-2": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
+          transition(1, isFull()),
+        ]),
+        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-            transition(1, isFull()),
-          ]),
-          state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-    {
-      name: "upgrader-3",
+    "upgrader-3": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
+          transition(1, isFull()),
+        ]),
+        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-            transition(1, isFull()),
-          ]),
-          state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-    {
-      name: "upgrader-4",
+    "upgrader-4": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
+          transition(1, isFull()),
+        ]),
+        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-            transition(1, isFull()),
-          ]),
-          state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-    {
-      name: "upgrader-5",
+    "upgrader-5": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
+          transition(1, isFull()),
+        ]),
+        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-            transition(1, isFull()),
-          ]),
-          state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-    {
-      name: "harvester-1",
+    "harvester-1": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(1, isFull()),
+        ]),
+        state(transfer(specificTarget("5fcafdd6b3e4dc245e7b5064")), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-            transition(1, isFull()),
-          ]),
-          state(transfer(specificTarget("5fcafdd6b3e4dc245e7b5064")), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-    {
-      name: "harvester-2",
+    "harvester-2": {
       body: [WORK, CARRY, MOVE],
+      states: [
+        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
+          transition(1, isFull()),
+        ]),
+        state(transfer(specificTarget("5fcafdd6b3e4dc245e7b5064")), [
+          transition(0, isEmpty()),
+        ]),
+      ],
       memory: {
         currentStateId: 0,
-        states: [
-          state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-            transition(1, isFull()),
-          ]),
-          state(transfer(specificTarget("5fcafdd6b3e4dc245e7b5064")), [
-            transition(0, isEmpty()),
-          ]),
-        ],
       },
     },
-  ],
+  },
 };
-
-const configCreeps = Object.values(config.creeps);
-
-// Update creeps with potentially new memory configuration
-configCreeps.forEach(({ name, memory }) => {
-  Game.creeps[name].memory.states = memory.states;
-});
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
@@ -330,7 +314,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
   }
 
   // Replace missing creeps
-  configCreeps.forEach(({ name, body, memory }) => {
+  Object.entries(config.creeps).forEach(([name, { body, memory }]) => {
     if (!(name in Game.creeps)) {
       Game.spawns.Spawn1.spawnCreep(body, name, { memory });
     }

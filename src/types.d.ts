@@ -1,7 +1,6 @@
 // memory extension samples
 interface CreepMemory {
   currentStateId: number;
-  states: import("./state").State[];
 }
 
 interface Memory {
