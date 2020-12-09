@@ -160,12 +160,12 @@ const checkEvents = (creep: Creep) => {
 };
 
 const runCreep = (creep: Creep) => {
-  const action = getCreepState(creep).action;
-  runAction(action)(creep);
   const newStateId = checkEvents(creep);
   if (newStateId !== undefined) {
     setCreepState(creep, newStateId);
   }
+  const action = getCreepState(creep).action;
+  runAction(action)(creep);
 };
 
 interface CreepData {
