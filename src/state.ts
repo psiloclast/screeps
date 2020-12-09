@@ -1,23 +1,6 @@
+import { TargetDescription, findFilter } from "targets";
+
 import { ValuesType } from "utils/types";
-
-export type findFilter = "lowHits";
-
-export const closestTarget = (find: FindConstant, filter?: findFilter) =>
-  ({
-    type: "closest",
-    find,
-    filter,
-  } as const);
-
-export const specificTarget = (targetId: string) =>
-  ({
-    type: "specific",
-    targetId,
-  } as const);
-
-export type TargetDescription =
-  | ReturnType<typeof closestTarget>
-  | ReturnType<typeof specificTarget>;
 
 export const build = (target: TargetDescription) =>
   ({
