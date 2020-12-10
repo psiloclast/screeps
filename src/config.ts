@@ -12,6 +12,7 @@ import {
   transfer,
   transition,
   upgrade,
+  withdraw,
 } from "state";
 import { closestTarget, specificTarget } from "targets";
 
@@ -34,15 +35,15 @@ const config: Config = {
     "builder-1": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(idle({ x: 19, y: 4 }), [
+        state(idle({ x: 19, y: 5 }), [
           transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
         ]),
         state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
           transition(2, isFull()),
         ]),
         state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
-          transition(1, isEmpty()),
           transition(0, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
+          transition(1, isEmpty()),
         ]),
       ],
       memory: {
@@ -55,12 +56,14 @@ const config: Config = {
         state(idle({ x: 19, y: 3 }), [
           transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
         ]),
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(2, isFull()),
-        ]),
+        state(
+          // withdraw from extension
+          withdraw(specificTarget("5fce79649be5248b2912b1d5"), RESOURCE_ENERGY),
+          [transition(2, isFull())],
+        ),
         state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
-          transition(1, isEmpty()),
           transition(0, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
+          transition(1, isEmpty()),
         ]),
       ],
       memory: {
@@ -71,14 +74,20 @@ const config: Config = {
       body: [WORK, CARRY, MOVE],
       states: [
         state(idle({ x: 20, y: 2 }), [
-          transition(2, targetAvailable(FIND_STRUCTURES, "lowHits")),
+          transition(
+            2,
+            targetAvailable(FIND_STRUCTURES, { filter: "lowHits" }),
+          ),
         ]),
         state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
           transition(2, isFull()),
         ]),
-        state(repair(closestTarget(FIND_STRUCTURES, "lowHits")), [
+        state(repair(closestTarget(FIND_STRUCTURES, { filter: "lowHits" })), [
+          transition(
+            0,
+            noTargetAvailable(FIND_STRUCTURES, { filter: "lowHits" }),
+          ),
           transition(1, isEmpty()),
-          transition(0, noTargetAvailable(FIND_STRUCTURES, "lowHits")),
         ]),
       ],
       memory: {
@@ -150,6 +159,46 @@ const config: Config = {
         state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
           transition(0, isEmpty()),
         ]),
+      ],
+      memory: {
+        currentStateId: 0,
+      },
+    },
+    "extension-filler-1": {
+      body: [WORK, CARRY, MOVE],
+      states: [
+        state(idle({ x: 21, y: 1 }), [
+          transition(
+            2,
+            targetAvailable(FIND_MY_STRUCTURES, {
+              filter: "lowEnergy",
+              structureType: STRUCTURE_EXTENSION,
+            }),
+          ),
+        ]),
+        state(
+          // withdraw from spawn
+          withdraw(specificTarget("5fcafdd6b3e4dc245e7b5064"), RESOURCE_ENERGY),
+          [transition(2, isFull())],
+        ),
+        state(
+          transfer(
+            closestTarget(FIND_MY_STRUCTURES, {
+              filter: "lowEnergy",
+              structureType: STRUCTURE_EXTENSION,
+            }),
+          ),
+          [
+            transition(
+              0,
+              noTargetAvailable(FIND_MY_STRUCTURES, {
+                filter: "lowEnergy",
+                structureType: STRUCTURE_EXTENSION,
+              }),
+            ),
+            transition(1, isEmpty()),
+          ],
+        ),
       ],
       memory: {
         currentStateId: 0,

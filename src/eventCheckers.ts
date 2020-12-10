@@ -5,19 +5,19 @@ const checkIsEmpty = (creep: Creep): boolean =>
   creep.store[RESOURCE_ENERGY] === 0;
 
 const checkIsFull = (creep: Creep): boolean =>
-  creep.store.getFreeCapacity("energy") === 0;
+  creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0;
 
 const checkTargetAvailable = (event: TargetAvailable) => (
   creep: Creep,
 ): boolean => {
-  const target = closestTarget(event.find, event.filter);
+  const target = closestTarget(event.find, event.opts);
   return getTarget(target, creep) !== null;
 };
 
 const checkNoTargetAvailable = (event: NoTargetAvailable) => (
   creep: Creep,
 ): boolean => {
-  const target = closestTarget(event.find, event.filter);
+  const target = closestTarget(event.find, event.opts);
   return getTarget(target, creep) === null;
 };
 
@@ -29,9 +29,8 @@ const checkEvent = (event: Event): EventChecker => {
       return checkIsEmpty;
     case "isFull":
       return checkIsFull;
-    case "targetAvailable": {
+    case "targetAvailable":
       return checkTargetAvailable(event);
-    }
     case "noTargetAvailable":
       return checkNoTargetAvailable(event);
   }

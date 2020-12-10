@@ -1,10 +1,17 @@
-export type findFilter = "lowHits";
+import { Predicate, composePredicates } from "utils/utils";
 
-export const closestTarget = (find: FindConstant, filter?: findFilter) =>
+type FindFilter = "lowHits" | "lowEnergy";
+
+export interface FindOpts {
+  filter?: FindFilter;
+  structureType?: StructureConstant;
+}
+
+export const closestTarget = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "closest",
     find,
-    filter,
+    opts,
   } as const);
 
 export const specificTarget = (targetId: string) =>
@@ -20,9 +27,25 @@ export type TargetDescription =
 export const getTarget = (target: TargetDescription, creep: Creep) => {
   switch (target.type) {
     case "closest": {
-      let opts;
-      if (target.filter === "lowHits") {
-        opts = { filter: (t: Structure) => t.hits / t.hitsMax < 1.0 };
+      const opts: { filter?: Predicate<any> } = {};
+      if (target.opts?.filter === "lowHits") {
+        opts.filter = composePredicates(
+          (s: Structure) => s.hits / s.hitsMax < 1.0,
+          opts.filter,
+        );
+      }
+      if (target.opts?.filter === "lowEnergy") {
+        opts.filter = composePredicates(
+          (s: StructureContainer) =>
+            s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+          opts.filter,
+        );
+      }
+      if (target.opts?.structureType) {
+        opts.filter = composePredicates(
+          (s: Structure) => s.structureType === target.opts?.structureType,
+          opts.filter,
+        );
       }
       return creep.pos.findClosestByPath(target.find, opts);
     }

@@ -1,4 +1,4 @@
-import { TargetDescription, findFilter } from "targets";
+import { FindOpts, TargetDescription } from "targets";
 
 import { ValuesType } from "utils/types";
 
@@ -38,12 +38,23 @@ export const upgrade = (target: TargetDescription) =>
     target,
   } as const);
 
+export const withdraw = (
+  target: TargetDescription,
+  resourceType: ResourceConstant,
+) =>
+  ({
+    type: "withdraw",
+    target,
+    resourceType,
+  } as const);
+
 export type BuildAction = ReturnType<typeof build>;
 export type HarvestAction = ReturnType<typeof harvest>;
 export type IdleAction = ReturnType<typeof idle>;
 export type RepairAction = ReturnType<typeof repair>;
 export type TransferAction = ReturnType<typeof transfer>;
 export type UpgradeAction = ReturnType<typeof upgrade>;
+export type WithdrawAction = ReturnType<typeof withdraw>;
 
 export type Action =
   | BuildAction
@@ -51,7 +62,8 @@ export type Action =
   | IdleAction
   | RepairAction
   | TransferAction
-  | UpgradeAction;
+  | UpgradeAction
+  | WithdrawAction;
 
 export type ActionType = ValuesType<Pick<Action, "type">>;
 
@@ -65,18 +77,18 @@ export const isFull = () =>
     type: "isFull",
   } as const);
 
-export const targetAvailable = (find: FindConstant, filter?: findFilter) =>
+export const targetAvailable = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "targetAvailable",
     find,
-    filter,
+    opts,
   } as const);
 
-export const noTargetAvailable = (find: FindConstant, filter?: findFilter) =>
+export const noTargetAvailable = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "noTargetAvailable",
     find,
-    filter,
+    opts,
   } as const);
 
 export type IsEmptyEvent = ReturnType<typeof isEmpty>;

@@ -6,6 +6,7 @@ import {
   RepairAction,
   TransferAction,
   UpgradeAction,
+  WithdrawAction,
 } from "state";
 
 import { getTarget } from "targets";
@@ -56,6 +57,15 @@ const runUpgrade = (action: UpgradeAction) => (creep: Creep) => {
   }
 };
 
+const runWithdraw = (action: WithdrawAction) => (creep: Creep) => {
+  const target = getTarget(action.target, creep) as Structure;
+  if (creep.withdraw(target, action.resourceType) === ERR_NOT_IN_RANGE) {
+    creep.moveTo(target, {
+      visualizePathStyle: { stroke: "#ffffff" },
+    });
+  }
+};
+
 type ActionRunner = (creep: Creep) => void;
 
 export const runAction = (action: Action): ActionRunner => {
@@ -72,5 +82,7 @@ export const runAction = (action: Action): ActionRunner => {
       return runTransfer(action);
     case "upgrade":
       return runUpgrade(action);
+    case "withdraw":
+      return runWithdraw(action);
   }
 };
