@@ -38,9 +38,10 @@ const config: Config = {
         state(idle({ x: 19, y: 5 }), [
           transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
         ]),
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(2, isFull()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
+          [transition(2, isFull())],
+        ),
         state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
           transition(0, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
           transition(1, isEmpty()),
@@ -57,8 +58,12 @@ const config: Config = {
           transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
         ]),
         state(
-          // withdraw from extension
-          withdraw(specificTarget("5fce79649be5248b2912b1d5"), RESOURCE_ENERGY),
+          withdraw(
+            specificTarget(
+              "5fce79649be5248b2912b1d5" as Id<StructureExtension>,
+            ),
+            RESOURCE_ENERGY,
+          ),
           [transition(2, isFull())],
         ),
         state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
@@ -79,9 +84,10 @@ const config: Config = {
             targetAvailable(FIND_STRUCTURES, { filter: "lowHits" }),
           ),
         ]),
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(2, isFull()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
+          [transition(2, isFull())],
+        ),
         state(repair(closestTarget(FIND_STRUCTURES, { filter: "lowHits" })), [
           transition(
             0,
@@ -97,12 +103,18 @@ const config: Config = {
     "upgrader-1": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-          transition(1, isFull()),
-        ]),
-        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-          transition(0, isEmpty()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
+          [transition(1, isFull())],
+        ),
+        state(
+          upgrade(
+            specificTarget(
+              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
+            ),
+          ),
+          [transition(0, isEmpty())],
+        ),
       ],
       memory: {
         currentStateId: 0,
@@ -111,12 +123,18 @@ const config: Config = {
     "upgrader-2": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-          transition(1, isFull()),
-        ]),
-        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-          transition(0, isEmpty()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
+          [transition(1, isFull())],
+        ),
+        state(
+          upgrade(
+            specificTarget(
+              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
+            ),
+          ),
+          [transition(0, isEmpty())],
+        ),
       ],
       memory: {
         currentStateId: 0,
@@ -125,12 +143,18 @@ const config: Config = {
     "upgrader-3": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-          transition(1, isFull()),
-        ]),
-        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-          transition(0, isEmpty()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
+          [transition(1, isFull())],
+        ),
+        state(
+          upgrade(
+            specificTarget(
+              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
+            ),
+          ),
+          [transition(0, isEmpty())],
+        ),
       ],
       memory: {
         currentStateId: 0,
@@ -139,12 +163,18 @@ const config: Config = {
     "upgrader-4": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-          transition(1, isFull()),
-        ]),
-        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-          transition(0, isEmpty()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
+          [transition(1, isFull())],
+        ),
+        state(
+          upgrade(
+            specificTarget(
+              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
+            ),
+          ),
+          [transition(0, isEmpty())],
+        ),
       ],
       memory: {
         currentStateId: 0,
@@ -153,12 +183,18 @@ const config: Config = {
     "upgrader-5": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cb")), [
-          transition(1, isFull()),
-        ]),
-        state(upgrade(specificTarget("5bbcafb59099fc012e63b0cc")), [
-          transition(0, isEmpty()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
+          [transition(1, isFull())],
+        ),
+        state(
+          upgrade(
+            specificTarget(
+              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
+            ),
+          ),
+          [transition(0, isEmpty())],
+        ),
       ],
       memory: {
         currentStateId: 0,
@@ -177,8 +213,10 @@ const config: Config = {
           ),
         ]),
         state(
-          // withdraw from spawn
-          withdraw(specificTarget("5fcafdd6b3e4dc245e7b5064"), RESOURCE_ENERGY),
+          withdraw(
+            specificTarget("5fcafdd6b3e4dc245e7b5064" as Id<StructureSpawn>),
+            RESOURCE_ENERGY,
+          ),
           [transition(2, isFull())],
         ),
         state(
@@ -207,12 +245,16 @@ const config: Config = {
     "harvester-1": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(1, isFull()),
-        ]),
-        state(transfer(specificTarget("5fcafdd6b3e4dc245e7b5064")), [
-          transition(0, isEmpty()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
+          [transition(1, isFull())],
+        ),
+        state(
+          transfer(
+            specificTarget("5fcafdd6b3e4dc245e7b5064" as Id<StructureSpawn>),
+          ),
+          [transition(0, isEmpty())],
+        ),
       ],
       memory: {
         currentStateId: 0,
@@ -221,12 +263,16 @@ const config: Config = {
     "harvester-2": {
       body: [WORK, CARRY, MOVE],
       states: [
-        state(harvest(specificTarget("5bbcafb59099fc012e63b0cd")), [
-          transition(1, isFull()),
-        ]),
-        state(transfer(specificTarget("5fcafdd6b3e4dc245e7b5064")), [
-          transition(0, isEmpty()),
-        ]),
+        state(
+          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
+          [transition(1, isFull())],
+        ),
+        state(
+          transfer(
+            specificTarget("5fcafdd6b3e4dc245e7b5064" as Id<StructureSpawn>),
+          ),
+          [transition(0, isEmpty())],
+        ),
       ],
       memory: {
         currentStateId: 0,

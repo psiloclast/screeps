@@ -14,7 +14,7 @@ export const closestTarget = (find: FindConstant, opts?: FindOpts) =>
     opts,
   } as const);
 
-export const specificTarget = (targetId: string) =>
+export const specificTarget = (targetId: Id<FindTypes[FindConstant]>) =>
   ({
     type: "specific",
     targetId,
@@ -24,7 +24,10 @@ export type TargetDescription =
   | ReturnType<typeof closestTarget>
   | ReturnType<typeof specificTarget>;
 
-export const getTarget = (target: TargetDescription, creep: Creep) => {
+export const getTarget = (
+  target: TargetDescription,
+  creep: Creep,
+): FindTypes[FindConstant] | null => {
   switch (target.type) {
     case "closest": {
       const opts: { filter?: Predicate<any> } = {};
