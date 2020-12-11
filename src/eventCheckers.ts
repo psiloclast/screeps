@@ -1,5 +1,12 @@
-import { Event, NoTargetAvailable, TargetAvailable, Transition } from "state";
-import { closestTarget, getTarget } from "targets";
+import {
+  Event,
+  NoTargetAvailable,
+  TargetAvailable,
+  Transition,
+  closestTarget,
+} from "state";
+
+import { getTarget } from "targets";
 
 const checkIsEmpty = (creep: Creep): boolean =>
   creep.store[RESOURCE_ENERGY] === 0;

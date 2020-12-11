@@ -1,12 +1,14 @@
 import {
   State,
   build,
+  closestTarget,
   harvest,
   idle,
   isEmpty,
   isFull,
   noTargetAvailable,
   repair,
+  specificTarget,
   state,
   targetAvailable,
   transfer,
@@ -14,7 +16,6 @@ import {
   upgrade,
   withdraw,
 } from "state";
-import { closestTarget, specificTarget } from "targets";
 
 interface CreepData {
   body: BodyPartConstant[];

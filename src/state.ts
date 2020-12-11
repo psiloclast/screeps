@@ -1,6 +1,30 @@
-import { FindOpts, TargetDescription } from "targets";
-
 import { ValuesType } from "utils/types";
+
+export type Target = FindTypes[FindConstant] | Structure;
+
+type FindFilter = "lowHits" | "lowEnergy";
+
+export interface FindOpts {
+  filter?: FindFilter;
+  structureType?: StructureConstant;
+}
+
+export const closestTarget = (find: FindConstant, opts?: FindOpts) =>
+  ({
+    type: "closest",
+    find,
+    opts: opts || {},
+  } as const);
+
+export const specificTarget = (targetId: Id<Target>) =>
+  ({
+    type: "specific",
+    targetId,
+  } as const);
+
+export type TargetDescription =
+  | ReturnType<typeof closestTarget>
+  | ReturnType<typeof specificTarget>;
 
 export const build = (target: TargetDescription) =>
   ({
@@ -81,14 +105,14 @@ export const targetAvailable = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "targetAvailable",
     find,
-    opts,
+    opts: opts || {},
   } as const);
 
 export const noTargetAvailable = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "noTargetAvailable",
     find,
-    opts,
+    opts: opts || {},
   } as const);
 
 export type IsEmptyEvent = ReturnType<typeof isEmpty>;

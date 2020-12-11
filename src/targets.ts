@@ -1,55 +1,42 @@
+import { FindOpts, Target, TargetDescription } from "state";
 import { Predicate, composePredicates } from "utils/utils";
 
-type FindFilter = "lowHits" | "lowEnergy";
+import { getCreepCachedTarget } from "memory";
 
-export interface FindOpts {
-  filter?: FindFilter;
-  structureType?: StructureConstant;
-}
-
-export const closestTarget = (find: FindConstant, opts?: FindOpts) =>
-  ({
-    type: "closest",
-    find,
-    opts,
-  } as const);
-
-export const specificTarget = (targetId: Id<FindTypes[FindConstant]>) =>
-  ({
-    type: "specific",
-    targetId,
-  } as const);
-
-export type TargetDescription =
-  | ReturnType<typeof closestTarget>
-  | ReturnType<typeof specificTarget>;
+export const optsToFilter = (opts: FindOpts): Predicate<any> => {
+  let filter: Predicate<any> = () => true;
+  if (opts.filter === "lowHits") {
+    filter = composePredicates(
+      (s: Structure) => s.hits / s.hitsMax < 1.0,
+      filter,
+    );
+  }
+  if (opts.filter === "lowEnergy") {
+    filter = composePredicates(
+      (s: StructureContainer) => s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+      filter,
+    );
+  }
+  if (opts.structureType) {
+    filter = composePredicates(
+      (s: Structure) => s.structureType === opts.structureType,
+      filter,
+    );
+  }
+  return filter;
+};
 
 export const getTarget = (
   target: TargetDescription,
   creep: Creep,
-): FindTypes[FindConstant] | null => {
+): Target | null => {
   switch (target.type) {
     case "closest": {
-      const opts: { filter?: Predicate<any> } = {};
-      if (target.opts?.filter === "lowHits") {
-        opts.filter = composePredicates(
-          (s: Structure) => s.hits / s.hitsMax < 1.0,
-          opts.filter,
-        );
+      const cachedTarget = getCreepCachedTarget(creep);
+      if (cachedTarget && optsToFilter(target.opts)(cachedTarget)) {
+        return cachedTarget;
       }
-      if (target.opts?.filter === "lowEnergy") {
-        opts.filter = composePredicates(
-          (s: StructureContainer) =>
-            s.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-          opts.filter,
-        );
-      }
-      if (target.opts?.structureType) {
-        opts.filter = composePredicates(
-          (s: Structure) => s.structureType === target.opts?.structureType,
-          opts.filter,
-        );
-      }
+      const opts = { filter: optsToFilter(target.opts) };
       return creep.pos.findClosestByPath(target.find, opts);
     }
     case "specific":
