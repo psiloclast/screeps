@@ -31,6 +31,22 @@ interface Config {
   };
 }
 
+const duplicate = (
+  baseName: string,
+  times: number,
+  data: CreepData,
+  startIndex = 1,
+) =>
+  Array.from({ length: times })
+    .map(() => data)
+    .reduce(
+      (acc, d) => ({
+        ...acc,
+        [`${baseName}-${startIndex++}`]: d,
+      }),
+      {},
+    );
+
 const config: Config = {
   creeps: {
     "builder-1": {
@@ -101,7 +117,7 @@ const config: Config = {
         currentStateId: 0,
       },
     },
-    "upgrader-1": {
+    ...duplicate("upgrader", 5, {
       body: [WORK, CARRY, MOVE],
       states: [
         state(
@@ -120,87 +136,7 @@ const config: Config = {
       memory: {
         currentStateId: 0,
       },
-    },
-    "upgrader-2": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
-          [transition(1, isFull())],
-        ),
-        state(
-          upgrade(
-            specificTarget(
-              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
-            ),
-          ),
-          [transition(0, isEmpty())],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
-    "upgrader-3": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
-          [transition(1, isFull())],
-        ),
-        state(
-          upgrade(
-            specificTarget(
-              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
-            ),
-          ),
-          [transition(0, isEmpty())],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
-    "upgrader-4": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
-          [transition(1, isFull())],
-        ),
-        state(
-          upgrade(
-            specificTarget(
-              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
-            ),
-          ),
-          [transition(0, isEmpty())],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
-    "upgrader-5": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
-          [transition(1, isFull())],
-        ),
-        state(
-          upgrade(
-            specificTarget(
-              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
-            ),
-          ),
-          [transition(0, isEmpty())],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
+    }),
     "extension-filler-1": {
       body: [WORK, CARRY, MOVE],
       states: [
@@ -243,7 +179,7 @@ const config: Config = {
         currentStateId: 0,
       },
     },
-    "harvester-1": {
+    ...duplicate("harvester", 2, {
       body: [WORK, CARRY, MOVE],
       states: [
         state(
@@ -260,25 +196,7 @@ const config: Config = {
       memory: {
         currentStateId: 0,
       },
-    },
-    "harvester-2": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
-          [transition(1, isFull())],
-        ),
-        state(
-          transfer(
-            specificTarget("5fcafdd6b3e4dc245e7b5064" as Id<StructureSpawn>),
-          ),
-          [transition(0, isEmpty())],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
+    }),
   },
 };
 
