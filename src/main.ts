@@ -15,6 +15,10 @@ const newState = (newStateId?: number): newStateId is number =>
   newStateId !== undefined;
 
 const runCreep = (creep: Creep) => {
+  if (!(creep.name in config.creeps)) {
+    creep.suicide();
+    return;
+  }
   const transitions = getCreepState(creep).transitions;
   const newStateId = checkEvents(transitions, creep);
   if (newState(newStateId)) {
