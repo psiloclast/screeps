@@ -28,6 +28,9 @@ const runCreep = (creep: Creep) => {
   }
 };
 
+// Reversed because last creep definition is spawned
+const configCreeps = Object.entries(config.creeps).reverse();
+
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
@@ -36,7 +39,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
   deleteMissingCreeps();
 
   // Replace missing creeps
-  Object.entries(config.creeps).forEach(([name, { body, memory }]) => {
+  configCreeps.forEach(([name, { body, memory }]) => {
     if (!(name in Game.creeps)) {
       Game.spawns.Spawn1.spawnCreep(body, name, { memory });
     }
