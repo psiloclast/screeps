@@ -39,6 +39,8 @@ export const getTarget = (
       const opts = { filter: optsToFilter(target.opts) };
       return creep.pos.findClosestByPath(target.find, opts);
     }
+    case "position":
+      return creep.room.getPositionAt(target.position.x, target.position.y);
     case "specific":
       return Game.getObjectById(target.targetId);
   }

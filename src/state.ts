@@ -16,6 +16,17 @@ export const closestTarget = (find: FindConstant, opts?: FindOpts) =>
     opts: opts || {},
   } as const);
 
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export const positionTarget = (x: number, y: number) =>
+  ({
+    type: "position",
+    position: { x, y },
+  } as const);
+
 export const specificTarget = (targetId: Id<Target>) =>
   ({
     type: "specific",
@@ -24,6 +35,7 @@ export const specificTarget = (targetId: Id<Target>) =>
 
 export type TargetDescription =
   | ReturnType<typeof closestTarget>
+  | ReturnType<typeof positionTarget>
   | ReturnType<typeof specificTarget>;
 
 export const build = (target: TargetDescription) =>
@@ -38,10 +50,10 @@ export const harvest = (target: TargetDescription) =>
     target,
   } as const);
 
-export const idle = (position: { x: number; y: number }) =>
+export const moveTo = (target: TargetDescription) =>
   ({
-    type: "idle",
-    position,
+    type: "moveTo",
+    target,
   } as const);
 
 export const repair = (target: TargetDescription) =>
@@ -74,7 +86,7 @@ export const withdraw = (
 
 export type BuildAction = ReturnType<typeof build>;
 export type HarvestAction = ReturnType<typeof harvest>;
-export type IdleAction = ReturnType<typeof idle>;
+export type MoveToAction = ReturnType<typeof moveTo>;
 export type RepairAction = ReturnType<typeof repair>;
 export type TransferAction = ReturnType<typeof transfer>;
 export type UpgradeAction = ReturnType<typeof upgrade>;
@@ -83,7 +95,7 @@ export type WithdrawAction = ReturnType<typeof withdraw>;
 export type Action =
   | BuildAction
   | HarvestAction
-  | IdleAction
+  | MoveToAction
   | RepairAction
   | TransferAction
   | UpgradeAction

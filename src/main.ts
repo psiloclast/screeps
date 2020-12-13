@@ -27,9 +27,9 @@ const runCreep = (creep: Creep) => {
     flushCreepCachedTarget(creep);
   }
   const action = getCreepState(creep).action;
-  const result = runAction(action)(creep);
-  if (newState(newStateId) && result?.target) {
-    setCreepCachedTarget(creep, result.target);
+  const { target } = runAction(action)(creep);
+  if (newState(newStateId) && target !== null) {
+    setCreepCachedTarget(creep, target);
   }
 };
 

@@ -3,7 +3,7 @@ interface CreepMemory {
   currentStateId: number;
   currentTarget?: {
     id?: Id<import("./state").Target>;
-    position?: { x: number; y: number };
+    position?: import("./state").Position;
   };
 }
 

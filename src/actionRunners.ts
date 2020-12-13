@@ -2,7 +2,7 @@ import {
   Action,
   BuildAction,
   HarvestAction,
-  IdleAction,
+  MoveToAction,
   RepairAction,
   Target,
   TransferAction,
@@ -28,11 +28,12 @@ const runHarvest = (action: HarvestAction) => (creep: Creep) => {
   return { target };
 };
 
-const runIdle = (action: IdleAction) => (creep: Creep) => {
-  creep.moveTo(action.position.x, action.position.y, {
+const runMoveTo = (action: MoveToAction) => (creep: Creep) => {
+  const target = getTarget(action.target, creep) as RoomPosition;
+  creep.moveTo(target, {
     visualizePathStyle: { stroke: "#ffffff" },
   });
-  return undefined;
+  return { target };
 };
 
 const runRepair = (action: RepairAction) => (creep: Creep) => {
@@ -74,10 +75,10 @@ const runWithdraw = (action: WithdrawAction) => (creep: Creep) => {
 };
 
 interface ActionRunnerResult {
-  target?: Target | null;
+  target: Target | null;
 }
 
-type ActionRunner = (creep: Creep) => ActionRunnerResult | undefined;
+type ActionRunner = (creep: Creep) => ActionRunnerResult;
 
 export const runAction = (action: Action): ActionRunner => {
   switch (action.type) {
@@ -85,8 +86,8 @@ export const runAction = (action: Action): ActionRunner => {
       return runBuild(action);
     case "harvest":
       return runHarvest(action);
-    case "idle":
-      return runIdle(action);
+    case "moveTo":
+      return runMoveTo(action);
     case "repair":
       return runRepair(action);
     case "transfer":
