@@ -1,5 +1,5 @@
 import {
-  deleteMissingCreeps,
+  cleanMemoryOfDeadCreeps,
   flushCreepCachedTarget,
   getCreepState,
   setCreepCachedTarget,
@@ -16,6 +16,7 @@ const newState = (newStateId?: number): newStateId is number =>
 
 const runCreep = (creep: Creep) => {
   if (!(creep.name in config.creeps)) {
+    console.log(`killing ${creep.name} as they are not in config`);
     creep.suicide();
     return;
   }
@@ -35,19 +36,16 @@ const runCreep = (creep: Creep) => {
 // Reversed because last creep definition is spawned
 const configCreeps = Object.entries(config.creeps).reverse();
 
-// When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
-// This utility uses source maps to get the line numbers and file names of the original, TS source code
-export const loop = ErrorMapper.wrapLoop(() => {
-  console.log(`Current game tick is ${Game.time}`);
-
-  deleteMissingCreeps();
-
-  // Replace missing creeps
+const replaceDeadCreeps = () =>
   configCreeps.forEach(([name, { body, memory }]) => {
     if (!(name in Game.creeps)) {
       Game.spawns.Spawn1.spawnCreep(body, name, { memory });
     }
   });
 
+export const loop = ErrorMapper.wrapLoop(() => {
+  console.log(`Current game tick is ${Game.time}`);
+  cleanMemoryOfDeadCreeps();
+  replaceDeadCreeps();
   Object.values(Game.creeps).forEach(runCreep);
 });

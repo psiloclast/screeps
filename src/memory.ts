@@ -3,7 +3,7 @@ import { State, Target } from "state";
 import config from "config";
 import { hasOwnProperty } from "utils/utils";
 
-export const deleteMissingCreeps = (): void => {
+export const cleanMemoryOfDeadCreeps = (): void => {
   for (const name in Memory.creeps) {
     if (!(name in Game.creeps)) {
       delete Memory.creeps[name];
@@ -23,17 +23,14 @@ export const getCreepCachedTarget = (creep: Creep): Target | undefined => {
   if (currentTarget === undefined) {
     return undefined;
   }
-
   const id = currentTarget.id;
   if (id !== undefined) {
     return Game.getObjectById(id) || undefined;
   }
-
   const position = currentTarget.position;
   if (position !== undefined) {
     return creep.room.getPositionAt(position.x, position.y) || undefined;
   }
-
   throw new Error(
     `should not get here. currentTarget: ${JSON.stringify(currentTarget)}`,
   );
