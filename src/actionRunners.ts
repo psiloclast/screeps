@@ -66,7 +66,10 @@ const runUpgrade = (action: UpgradeAction) => (creep: Creep) => {
 
 const runWithdraw = (action: WithdrawAction) => (creep: Creep) => {
   const target = getTarget(action.target, creep) as Structure;
-  if (creep.withdraw(target, action.resourceType) === ERR_NOT_IN_RANGE) {
+  if (
+    creep.withdraw(target, action.resourceType, action.amount) ===
+    ERR_NOT_IN_RANGE
+  ) {
     creep.moveTo(target, {
       visualizePathStyle: { stroke: "#ffffff" },
     });

@@ -6,6 +6,7 @@ import {
   closestTarget,
 } from "state";
 
+import { getCreepCachedTarget } from "memory";
 import { getTarget } from "targets";
 
 const checkIsEmpty = (creep: Creep): boolean =>
@@ -13,6 +14,14 @@ const checkIsEmpty = (creep: Creep): boolean =>
 
 const checkIsFull = (creep: Creep): boolean =>
   creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0;
+
+const atTarget = (creep: Creep): boolean => {
+  const target = getCreepCachedTarget(creep);
+  if (target === undefined) {
+    return false;
+  }
+  return creep.pos.isEqualTo(target);
+};
 
 const checkTargetAvailable = (event: TargetAvailable) => (
   creep: Creep,
@@ -36,6 +45,8 @@ const checkEvent = (event: Event): EventChecker => {
       return checkIsEmpty;
     case "isFull":
       return checkIsFull;
+    case "atTarget":
+      return atTarget;
     case "targetAvailable":
       return checkTargetAvailable(event);
     case "noTargetAvailable":

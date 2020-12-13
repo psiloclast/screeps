@@ -28,7 +28,7 @@ const runCreep = (creep: Creep) => {
   }
   const action = getCreepState(creep).action;
   const { target } = runAction(action)(creep);
-  if (newState(newStateId) && target !== null) {
+  if ((creep.spawning || newState(newStateId)) && target !== null) {
     setCreepCachedTarget(creep, target);
   }
 };

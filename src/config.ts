@@ -1,12 +1,14 @@
 import {
   State,
+  atTarget,
   build,
   closestTarget,
   harvest,
-  idle,
   isEmpty,
   isFull,
+  moveTo,
   noTargetAvailable,
+  positionTarget,
   repair,
   specificTarget,
   state,
@@ -17,187 +19,242 @@ import {
   withdraw,
 } from "state";
 
-interface CreepData {
+type CreepRole =
+  | "builder"
+  | "courier"
+  | "extension-filler"
+  | "harvester"
+  | "drop-harvester"
+  | "repairer"
+  | "upgrader";
+
+interface CreepDefinition {
+  role: CreepRole;
   body: BodyPartConstant[];
   states: State[];
-  memory: {
-    currentStateId: number;
-  };
+  memory: CreepMemory;
 }
 
 interface Config {
   creeps: {
-    [name: string]: CreepData;
+    [name: string]: CreepDefinition;
   };
 }
 
-const duplicate = (
-  baseName: string,
-  times: number,
-  data: CreepData,
-  startIndex = 1,
-) =>
-  Array.from({ length: times })
-    .map(() => data)
-    .reduce(
-      (acc, d) => ({
+const duplicate = (times: number, data: CreepDefinition): CreepDefinition[] =>
+  Array.from({ length: times }).map(() => data);
+
+const defineCreeps = (
+  definitions: CreepDefinition[],
+): [Config["creeps"], Record<string, number>] => {
+  // eslint-disable-next-line no-shadow
+  const numOfEachRole: Record<string, number> = {};
+  const increaseNumber = (role: CreepRole): number =>
+    numOfEachRole[role] ? ++numOfEachRole[role] : (numOfEachRole[role] = 1);
+  return [
+    definitions.reduce(
+      (acc, definition) => ({
         ...acc,
-        [`${baseName}-${startIndex++}`]: d,
+        [`${definition.role}-${increaseNumber(definition.role)}`]: definition,
       }),
       {},
-    );
+    ),
+    numOfEachRole,
+  ];
+};
+
+const [creeps, numOfEachRole] = defineCreeps([
+  {
+    role: "builder",
+    body: [WORK, CARRY, MOVE],
+    states: [
+      state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
+        transition(2, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
+        transition(1, isEmpty()),
+      ]),
+      state(
+        withdraw(
+          closestTarget(FIND_STRUCTURES, {
+            structureType: STRUCTURE_CONTAINER,
+            filter: "hasEnergy",
+          }),
+          RESOURCE_ENERGY,
+        ),
+        [transition(0, isFull())],
+      ),
+      state(moveTo(positionTarget(37, 40)), [
+        transition(0, targetAvailable(FIND_CONSTRUCTION_SITES)),
+      ]),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
+  {
+    role: "drop-harvester",
+    body: [WORK, WORK, WORK, WORK, WORK, MOVE],
+    states: [
+      state(
+        moveTo(
+          specificTarget("5fd4f1221908a302197a6000" as Id<StructureContainer>),
+        ),
+        [transition(1, atTarget())],
+      ),
+      state(harvest(closestTarget(FIND_SOURCES))),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
+  {
+    role: "drop-harvester",
+    body: [WORK, WORK, WORK, WORK, WORK, MOVE],
+    states: [
+      state(
+        moveTo(
+          specificTarget("5fd52c2de985fa737e8d34bb" as Id<StructureContainer>),
+        ),
+        [transition(1, atTarget())],
+      ),
+      state(harvest(closestTarget(FIND_SOURCES))),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
+  {
+    role: "courier",
+    body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+    states: [
+      state(
+        transfer(
+          specificTarget("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
+        ),
+        [transition(1, isEmpty())],
+      ),
+      state(
+        withdraw(
+          closestTarget(FIND_STRUCTURES, {
+            structureType: STRUCTURE_CONTAINER,
+            filter: "hasEnergy",
+          }),
+          RESOURCE_ENERGY,
+        ),
+        [transition(0, isFull())],
+      ),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
+  ...duplicate(4, {
+    role: "upgrader",
+    body: [WORK, CARRY, MOVE],
+    states: [
+      state(
+        upgrade(
+          specificTarget("5bbcac939099fc012e635c1b" as Id<StructureController>),
+        ),
+        [transition(1, isEmpty())],
+      ),
+      state(
+        withdraw(
+          closestTarget(FIND_STRUCTURES, {
+            structureType: STRUCTURE_CONTAINER,
+            filter: "hasEnergy",
+          }),
+          RESOURCE_ENERGY,
+        ),
+        [transition(0, isFull())],
+      ),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  }),
+  {
+    role: "extension-filler",
+    body: [WORK, CARRY, MOVE],
+    states: [
+      state(
+        transfer(
+          closestTarget(FIND_MY_STRUCTURES, {
+            filter: "lowEnergy",
+            structureType: STRUCTURE_EXTENSION,
+          }),
+        ),
+        [
+          transition(
+            2,
+            noTargetAvailable(FIND_MY_STRUCTURES, {
+              filter: "lowEnergy",
+              structureType: STRUCTURE_EXTENSION,
+            }),
+          ),
+          transition(1, isEmpty()),
+        ],
+      ),
+      state(
+        withdraw(
+          specificTarget("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
+          RESOURCE_ENERGY,
+        ),
+        [transition(0, isFull())],
+      ),
+      state(moveTo(positionTarget(37, 36)), [
+        transition(
+          0,
+          targetAvailable(FIND_MY_STRUCTURES, {
+            filter: "lowEnergy",
+            structureType: STRUCTURE_EXTENSION,
+          }),
+        ),
+      ]),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
+  ...duplicate(2, {
+    role: "repairer",
+    body: [WORK, CARRY, MOVE],
+    states: [
+      state(repair(closestTarget(FIND_STRUCTURES, { filter: "lowHits" })), [
+        transition(
+          2,
+          noTargetAvailable(FIND_STRUCTURES, { filter: "lowHits" }),
+        ),
+        transition(1, isEmpty()),
+      ]),
+      state(
+        withdraw(
+          closestTarget(FIND_STRUCTURES, {
+            structureType: STRUCTURE_CONTAINER,
+            filter: "hasEnergy",
+          }),
+          RESOURCE_ENERGY,
+        ),
+        [transition(0, isFull())],
+      ),
+      state(moveTo(positionTarget(40, 35)), [
+        transition(0, targetAvailable(FIND_STRUCTURES, { filter: "lowHits" })),
+      ]),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  }),
+]);
+
+console.log("====== CONFIG ======");
+console.log("Number of each role:");
+Object.entries(numOfEachRole).forEach(([role, amount]) => {
+  console.log(`  ${role}: ${amount}`);
+});
+console.log("====================");
 
 const config: Config = {
-  creeps: {
-    "builder-1": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(idle({ x: 19, y: 5 }), [
-          transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
-        ]),
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
-          [transition(2, isFull())],
-        ),
-        state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
-          transition(0, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
-          transition(1, isEmpty()),
-        ]),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
-    "builder-2": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(idle({ x: 19, y: 3 }), [
-          transition(2, targetAvailable(FIND_CONSTRUCTION_SITES)),
-        ]),
-        state(
-          withdraw(
-            specificTarget(
-              "5fce79649be5248b2912b1d5" as Id<StructureExtension>,
-            ),
-            RESOURCE_ENERGY,
-          ),
-          [transition(2, isFull())],
-        ),
-        state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
-          transition(0, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
-          transition(1, isEmpty()),
-        ]),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
-    "repairer-1": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(idle({ x: 20, y: 2 }), [
-          transition(
-            2,
-            targetAvailable(FIND_STRUCTURES, { filter: "lowHits" }),
-          ),
-        ]),
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
-          [transition(2, isFull())],
-        ),
-        state(repair(closestTarget(FIND_STRUCTURES, { filter: "lowHits" })), [
-          transition(
-            0,
-            noTargetAvailable(FIND_STRUCTURES, { filter: "lowHits" }),
-          ),
-          transition(1, isEmpty()),
-        ]),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
-    ...duplicate("upgrader", 5, {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cb" as Id<Source>)),
-          [transition(1, isFull())],
-        ),
-        state(
-          upgrade(
-            specificTarget(
-              "5bbcafb59099fc012e63b0cc" as Id<StructureController>,
-            ),
-          ),
-          [transition(0, isEmpty())],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    }),
-    "extension-filler-1": {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(idle({ x: 21, y: 1 }), [
-          transition(
-            2,
-            targetAvailable(FIND_MY_STRUCTURES, {
-              filter: "lowEnergy",
-              structureType: STRUCTURE_EXTENSION,
-            }),
-          ),
-        ]),
-        state(
-          withdraw(
-            specificTarget("5fcafdd6b3e4dc245e7b5064" as Id<StructureSpawn>),
-            RESOURCE_ENERGY,
-          ),
-          [transition(2, isFull())],
-        ),
-        state(
-          transfer(
-            closestTarget(FIND_MY_STRUCTURES, {
-              filter: "lowEnergy",
-              structureType: STRUCTURE_EXTENSION,
-            }),
-          ),
-          [
-            transition(
-              0,
-              noTargetAvailable(FIND_MY_STRUCTURES, {
-                filter: "lowEnergy",
-                structureType: STRUCTURE_EXTENSION,
-              }),
-            ),
-            transition(1, isEmpty()),
-          ],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    },
-    ...duplicate("harvester", 2, {
-      body: [WORK, CARRY, MOVE],
-      states: [
-        state(
-          harvest(specificTarget("5bbcafb59099fc012e63b0cd" as Id<Source>)),
-          [transition(1, isFull())],
-        ),
-        state(
-          transfer(
-            specificTarget("5fcafdd6b3e4dc245e7b5064" as Id<StructureSpawn>),
-          ),
-          [transition(0, isEmpty())],
-        ),
-      ],
-      memory: {
-        currentStateId: 0,
-      },
-    }),
-  },
+  creeps,
 };
 
 export default config;

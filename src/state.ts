@@ -2,7 +2,7 @@ import { ValuesType } from "utils/types";
 
 export type Target = FindTypes[FindConstant] | Structure;
 
-type FindFilter = "lowHits" | "lowEnergy";
+export type FindFilter = "lowHits" | "lowEnergy" | "hasEnergy";
 
 export interface FindOpts {
   filter?: FindFilter;
@@ -77,11 +77,13 @@ export const upgrade = (target: TargetDescription) =>
 export const withdraw = (
   target: TargetDescription,
   resourceType: ResourceConstant,
+  amount?: number,
 ) =>
   ({
     type: "withdraw",
     target,
     resourceType,
+    amount,
   } as const);
 
 export type BuildAction = ReturnType<typeof build>;
@@ -113,6 +115,8 @@ export const isFull = () =>
     type: "isFull",
   } as const);
 
+export const atTarget = () => ({ type: "atTarget" } as const);
+
 export const targetAvailable = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "targetAvailable",
@@ -129,12 +133,14 @@ export const noTargetAvailable = (find: FindConstant, opts?: FindOpts) =>
 
 export type IsEmptyEvent = ReturnType<typeof isEmpty>;
 export type IsFullEvent = ReturnType<typeof isFull>;
+export type AtTargetEvent = ReturnType<typeof atTarget>;
 export type TargetAvailable = ReturnType<typeof targetAvailable>;
 export type NoTargetAvailable = ReturnType<typeof noTargetAvailable>;
 
 export type Event =
   | IsEmptyEvent
   | IsFullEvent
+  | AtTargetEvent
   | TargetAvailable
   | NoTargetAvailable;
 
@@ -148,10 +154,10 @@ export const transition = (stateId: number, event: Event) =>
 
 export type Transition = ReturnType<typeof transition>;
 
-export const state = (action: Action, transitions: Transition[]) =>
+export const state = (action: Action, transitions?: Transition[]) =>
   ({
     action,
-    transitions,
+    transitions: transitions || [],
   } as const);
 
 export type State = ReturnType<typeof state>;
