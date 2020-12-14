@@ -7,9 +7,9 @@ export const typedKeyObjectEntries = <T>(obj: T): Entries<T> => {
 
 export type Predicate<T> = (x: T) => boolean;
 
-export const composePredicates = <T>(p1: Predicate<T>, p2?: Predicate<T>) => (
+export const composePredicates = <T>(p1: Predicate<T>, p2: Predicate<T>) => (
   x: T,
-): boolean => p1(x) && (p2 ? p2(x) : true);
+): boolean => p1(x) && p2(x);
 
 // https://fettblog.eu/typescript-hasownproperty/
 // eslint-disable-next-line @typescript-eslint/ban-types

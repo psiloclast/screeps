@@ -16,7 +16,9 @@ import {
   transfer,
   transition,
   upgrade,
+  valueEqual,
   withdraw,
+  withinBounds,
 } from "state";
 
 type CreepRole =
@@ -75,8 +77,10 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(
         withdraw(
           closestTarget(FIND_STRUCTURES, {
-            structureType: STRUCTURE_CONTAINER,
-            filter: "hasEnergy",
+            filters: [
+              valueEqual("structureType", STRUCTURE_CONTAINER),
+              withinBounds("energy", { min: 0.01 }),
+            ],
           }),
           RESOURCE_ENERGY,
         ),
@@ -135,8 +139,10 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(
         withdraw(
           closestTarget(FIND_STRUCTURES, {
-            structureType: STRUCTURE_CONTAINER,
-            filter: "hasEnergy",
+            filters: [
+              valueEqual("structureType", STRUCTURE_CONTAINER),
+              withinBounds("energy", { min: 0.01 }),
+            ],
           }),
           RESOURCE_ENERGY,
         ),
@@ -155,8 +161,10 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(
         withdraw(
           closestTarget(FIND_STRUCTURES, {
-            structureType: STRUCTURE_CONTAINER,
-            filter: "hasEnergy",
+            filters: [
+              valueEqual("structureType", STRUCTURE_CONTAINER),
+              withinBounds("energy", { min: 0.01 }),
+            ],
           }),
           RESOURCE_ENERGY,
         ),
@@ -174,16 +182,20 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(
         transfer(
           closestTarget(FIND_MY_STRUCTURES, {
-            filter: "lowEnergy",
-            structureType: STRUCTURE_EXTENSION,
+            filters: [
+              valueEqual("structureType", STRUCTURE_EXTENSION),
+              withinBounds("energy", { max: 0.99 }),
+            ],
           }),
         ),
         [
           transition(
             2,
             noTargetAvailable(FIND_MY_STRUCTURES, {
-              filter: "lowEnergy",
-              structureType: STRUCTURE_EXTENSION,
+              filters: [
+                valueEqual("structureType", STRUCTURE_EXTENSION),
+                withinBounds("energy", { max: 0.99 }),
+              ],
             }),
           ),
           transition(1, isEmpty()),
@@ -200,8 +212,10 @@ const [creeps, numOfEachRole] = defineCreeps([
         transition(
           0,
           targetAvailable(FIND_MY_STRUCTURES, {
-            filter: "lowEnergy",
-            structureType: STRUCTURE_EXTENSION,
+            filters: [
+              valueEqual("structureType", STRUCTURE_EXTENSION),
+              withinBounds("energy", { max: 0.99 }),
+            ],
           }),
         ),
       ]),
@@ -214,31 +228,84 @@ const [creeps, numOfEachRole] = defineCreeps([
     role: "repairer",
     body: [WORK, CARRY, MOVE],
     states: [
-      state(repair(closestTarget(FIND_STRUCTURES, { filter: "lowHits" })), [
-        transition(
-          2,
-          noTargetAvailable(FIND_STRUCTURES, { filter: "lowHits" }),
+      state(
+        repair(
+          closestTarget(FIND_STRUCTURES, {
+            filters: [
+              withinBounds("hits", { max: 50000, isPercent: false }),
+              withinBounds("hits", { max: 0.99 }),
+            ],
+          }),
         ),
-        transition(1, isEmpty()),
-      ]),
+        [
+          transition(
+            2,
+            noTargetAvailable(FIND_STRUCTURES, {
+              filters: [
+                withinBounds("hits", { max: 50000, isPercent: false }),
+                withinBounds("hits", { max: 0.99 }),
+              ],
+            }),
+          ),
+          transition(1, isEmpty()),
+        ],
+      ),
       state(
         withdraw(
           closestTarget(FIND_STRUCTURES, {
-            structureType: STRUCTURE_CONTAINER,
-            filter: "hasEnergy",
+            filters: [
+              valueEqual("structureType", STRUCTURE_CONTAINER),
+              withinBounds("energy", { min: 0.01 }),
+            ],
           }),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
       ),
       state(moveTo(positionTarget(40, 35)), [
-        transition(0, targetAvailable(FIND_STRUCTURES, { filter: "lowHits" })),
+        transition(
+          0,
+          targetAvailable(FIND_STRUCTURES, {
+            filters: [
+              withinBounds("hits", { max: 50000, isPercent: false }),
+              withinBounds("hits", { max: 0.99 }),
+            ],
+          }),
+        ),
       ]),
     ],
     memory: {
       currentStateId: 0,
     },
   }),
+  {
+    role: "builder",
+    body: [WORK, CARRY, MOVE],
+    states: [
+      state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
+        transition(2, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
+        transition(1, isEmpty()),
+      ]),
+      state(
+        withdraw(
+          closestTarget(FIND_STRUCTURES, {
+            filters: [
+              valueEqual("structureType", STRUCTURE_CONTAINER),
+              withinBounds("energy", { min: 0.01 }),
+            ],
+          }),
+          RESOURCE_ENERGY,
+        ),
+        [transition(0, isFull())],
+      ),
+      state(moveTo(positionTarget(37, 40)), [
+        transition(0, targetAvailable(FIND_CONSTRUCTION_SITES)),
+      ]),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
 ]);
 
 console.log("====== CONFIG ======");

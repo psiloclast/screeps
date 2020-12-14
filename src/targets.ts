@@ -1,33 +1,57 @@
-import { FindFilter, FindOpts, TargetDescription } from "state";
+import {
+  FindFilter,
+  FindOpts,
+  TargetDescription,
+  ValueEqual,
+  WithinBounds,
+} from "state";
 import { Predicate, composePredicates } from "utils/utils";
 
 import { getCreepCachedTarget } from "memory";
 
-const parseFindFilter = (filter: FindFilter): Predicate<any> => {
-  switch (filter) {
-    case "lowHits":
-      return (s: Structure) => s.hits / s.hitsMax < 1.0;
-    case "lowEnergy":
-      return (s: StructureContainer) =>
-        s.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-    case "hasEnergy":
-      return (s: StructureContainer) => s.store[RESOURCE_ENERGY] > 0;
+const parseValueEqualFilter = (filter: ValueEqual) => {
+  switch (filter.property) {
+    case "structureType":
+      return (s: StructureContainer) => s[filter.property] === filter.value;
   }
 };
 
-export const optsToFilter = (opts: FindOpts): Predicate<any> => {
-  let filter: Predicate<any> = () => true;
-  if (opts.filter) {
-    filter = composePredicates(parseFindFilter(opts.filter));
+const parseWithinBoundsFilter = (filter: WithinBounds) => {
+  const { min, max, isPercent } = filter.opts;
+  switch (filter.property) {
+    case "hits":
+      return (s: Structure) => {
+        const value = isPercent ? s.hits / s.hitsMax : s.hits;
+        return min <= value && value <= max;
+      };
+    case "energy":
+      return (s: Creep) => {
+        const value = isPercent
+          ? s.store[RESOURCE_ENERGY] / s.store.getCapacity(RESOURCE_ENERGY)
+          : s.store[RESOURCE_ENERGY];
+        return min <= value && value <= max;
+      };
   }
-  if (opts.structureType) {
-    filter = composePredicates(
-      (s: Structure) => s.structureType === opts.structureType,
-      filter,
-    );
-  }
-  return filter;
 };
+
+const parseFindFilter = (filter: FindFilter): Predicate<any> => {
+  switch (filter.type) {
+    case "valueEqual":
+      return parseValueEqualFilter(filter);
+    case "withinBounds":
+      return parseWithinBoundsFilter(filter);
+  }
+};
+
+interface ScreepsFindOpts {
+  filter: Predicate<any>;
+}
+
+const parseFindOpts = (findOpts: FindOpts): ScreepsFindOpts => ({
+  filter: findOpts.filters
+    .map(parseFindFilter)
+    .reduce(composePredicates, () => true),
+});
 
 export const getTarget = <F extends FindConstant = FindConstant>(
   target: TargetDescription<F>,
@@ -36,11 +60,11 @@ export const getTarget = <F extends FindConstant = FindConstant>(
   switch (target.type) {
     case "closest": {
       const cachedTarget = getCreepCachedTarget<F>(creep);
-      if (cachedTarget && optsToFilter(target.opts)(cachedTarget)) {
+      const screepFindOpts = parseFindOpts(target.opts);
+      if (cachedTarget && screepFindOpts.filter(cachedTarget)) {
         return cachedTarget;
       }
-      const opts = { filter: optsToFilter(target.opts) };
-      return creep.pos.findClosestByPath(target.find, opts);
+      return creep.pos.findClosestByPath(target.find, screepFindOpts);
     }
     case "specific":
       return Game.getObjectById(target.targetId);

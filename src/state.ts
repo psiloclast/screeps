@@ -1,11 +1,52 @@
 import { ValuesType } from "utils/types";
 
-export type FindFilter = "lowHits" | "lowEnergy" | "hasEnergy";
+type ValueEqualProperty = "structureType";
+type ValueEqualValue = StructureConstant;
+
+export const valueEqual = (
+  property: ValueEqualProperty,
+  value: ValueEqualValue,
+) =>
+  ({
+    type: "valueEqual",
+    property,
+    value,
+  } as const);
+
+type WithinBoundsProperty = "hits" | "energy";
+interface WithinBoundsOpts {
+  min?: number;
+  max?: number;
+  isPercent?: boolean;
+}
+
+export const withinBounds = (
+  property: WithinBoundsProperty,
+  opts: WithinBoundsOpts,
+) =>
+  ({
+    type: "withinBounds",
+    property,
+    opts: {
+      min: 0,
+      max: 1,
+      isPercent: true,
+      ...opts,
+    },
+  } as const);
+
+export type ValueEqual = ReturnType<typeof valueEqual>;
+export type WithinBounds = ReturnType<typeof withinBounds>;
+
+export type FindFilter = ValueEqual | WithinBounds;
 
 export interface FindOpts {
-  filter?: FindFilter;
-  structureType?: StructureConstant;
+  filters: FindFilter[];
 }
+
+const defaultFindOpts = (): FindOpts => ({
+  filters: [],
+});
 
 interface ClosestTarget<F extends FindConstant = FindConstant> {
   type: "closest";
@@ -20,7 +61,7 @@ export const closestTarget = <F extends FindConstant = FindConstant>(
   ({
     type: "closest",
     find,
-    opts: opts || {},
+    opts: opts || defaultFindOpts(),
   } as const);
 
 export interface Position {
@@ -148,14 +189,14 @@ export const targetAvailable = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "targetAvailable",
     find,
-    opts: opts || {},
+    opts: opts || defaultFindOpts(),
   } as const);
 
 export const noTargetAvailable = (find: FindConstant, opts?: FindOpts) =>
   ({
     type: "noTargetAvailable",
     find,
-    opts: opts || {},
+    opts: opts || defaultFindOpts(),
   } as const);
 
 export type IsEmptyEvent = ReturnType<typeof isEmpty>;
