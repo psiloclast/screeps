@@ -1,5 +1,4 @@
-import { State, Target } from "state";
-
+import { State } from "state";
 import config from "config";
 import { hasOwnProperty } from "utils/utils";
 
@@ -18,50 +17,34 @@ export const setCreepState = (creep: Creep, stateId: number): void => {
   creep.memory.currentStateId = stateId;
 };
 
-export const getCreepCachedTarget = (creep: Creep): Target | undefined => {
-  const currentTarget = creep.memory.currentTarget;
-  if (currentTarget === undefined) {
+export const getCreepCachedTarget = <F extends FindConstant = FindConstant>(
+  creep: Creep,
+): FindTypes[F] | undefined => {
+  const currentTargetId = creep.memory.currentTargetId;
+  if (currentTargetId === undefined) {
     return undefined;
   }
-  const id = currentTarget.id;
-  if (id !== undefined) {
-    return Game.getObjectById(id) || undefined;
-  }
-  const position = currentTarget.position;
-  if (position !== undefined) {
-    return creep.room.getPositionAt(position.x, position.y) || undefined;
-  }
-  throw new Error(
-    `should not get here. currentTarget: ${JSON.stringify(currentTarget)}`,
-  );
+  return Game.getObjectById(currentTargetId as Id<FindTypes[F]>) || undefined;
 };
 
-export const setCreepCachedTarget = (creep: Creep, target: Target): void => {
+export const setCreepCachedTarget = <F extends FindConstant = FindConstant>(
+  creep: Creep,
+  target: FindTypes[F],
+): void => {
   /*
   Objects in screeps either have an `id`, are a RoomPosition with an
   `x` and a `y`, or are a flag which we do not currently support being set.
   */
-  let newTarget: CreepMemory["currentTarget"];
+  let newTargetId: Id<FindTypes[F]>;
   if (hasOwnProperty(target, "id")) {
-    newTarget = {
-      id: target.id,
-    };
-  } else if (hasOwnProperty(target, "x")) {
-    newTarget = {
-      position: {
-        x: target.x,
-        y: target.y,
-      },
-    };
+    newTargetId = target.id as Id<FindTypes[F]>;
   } else {
-    throw new Error(
-      `can not set flag as target. target: ${JSON.stringify(target)}`,
-    );
+    throw new Error(`invalid target: ${JSON.stringify(target)}`);
   }
   // Overwrite memory in one place to ensure we leave no hanging values.
-  creep.memory.currentTarget = newTarget;
+  creep.memory.currentTargetId = newTargetId;
 };
 
 export const flushCreepCachedTarget = (creep: Creep): void => {
-  creep.memory.currentTarget = undefined;
+  creep.memory.currentTargetId = undefined;
 };

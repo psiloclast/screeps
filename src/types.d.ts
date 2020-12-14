@@ -1,10 +1,7 @@
 // memory extension samples
 interface CreepMemory {
   currentStateId: number;
-  currentTarget?: {
-    id?: Id<import("./state").Target>;
-    position?: import("./state").Position;
-  };
+  currentTargetId?: Id<FindTypes[FindConstant]>;
 }
 
 interface Memory {

@@ -1,19 +1,19 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import {
   Action,
   BuildAction,
   HarvestAction,
   MoveToAction,
   RepairAction,
-  Target,
   TransferAction,
-  UpgradeAction,
   WithdrawAction,
 } from "state";
 
 import { getTarget } from "targets";
 
 const runBuild = (action: BuildAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep) as ConstructionSite;
+  const target = getTarget(action.target, creep)!;
   if (creep.build(target) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" } });
   }
@@ -21,7 +21,7 @@ const runBuild = (action: BuildAction) => (creep: Creep) => {
 };
 
 const runHarvest = (action: HarvestAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep) as Source;
+  const target = getTarget(action.target, creep)!;
   if (creep.harvest(target) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, { visualizePathStyle: { stroke: "#ffaa00" } });
   }
@@ -29,7 +29,16 @@ const runHarvest = (action: HarvestAction) => (creep: Creep) => {
 };
 
 const runMoveTo = (action: MoveToAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep) as RoomPosition;
+  const targetDescription = action.target;
+  let target;
+  if (targetDescription.type === "position") {
+    target = creep.room.getPositionAt(
+      targetDescription.position.x,
+      targetDescription.position.y,
+    )!;
+  } else {
+    target = getTarget(targetDescription, creep)!;
+  }
   creep.moveTo(target, {
     visualizePathStyle: { stroke: "#ffffff" },
   });
@@ -37,7 +46,7 @@ const runMoveTo = (action: MoveToAction) => (creep: Creep) => {
 };
 
 const runRepair = (action: RepairAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep) as Structure;
+  const target = getTarget(action.target, creep)!;
   if (creep.repair(target) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" } });
   }
@@ -45,7 +54,7 @@ const runRepair = (action: RepairAction) => (creep: Creep) => {
 };
 
 const runTransfer = (action: TransferAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep) as Structure;
+  const target = getTarget(action.target, creep)!;
   if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, {
       visualizePathStyle: { stroke: "#ffffff" },
@@ -54,8 +63,8 @@ const runTransfer = (action: TransferAction) => (creep: Creep) => {
   return { target };
 };
 
-const runUpgrade = (action: UpgradeAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep) as StructureController;
+const runUpgrade = () => (creep: Creep) => {
+  const target = creep.room.controller!;
   if (creep.upgradeController(target) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, {
       visualizePathStyle: { stroke: "#ffffff" },
@@ -65,7 +74,7 @@ const runUpgrade = (action: UpgradeAction) => (creep: Creep) => {
 };
 
 const runWithdraw = (action: WithdrawAction) => (creep: Creep) => {
-  const target = getTarget(action.target, creep) as Structure;
+  const target = getTarget(action.target, creep)!;
   if (
     creep.withdraw(target, action.resourceType, action.amount) ===
     ERR_NOT_IN_RANGE
@@ -78,7 +87,7 @@ const runWithdraw = (action: WithdrawAction) => (creep: Creep) => {
 };
 
 interface ActionRunnerResult {
-  target: Target | null;
+  target: FindTypes[FindConstant] | null;
 }
 
 type ActionRunner = (creep: Creep) => ActionRunnerResult;
@@ -96,7 +105,7 @@ export const runAction = (action: Action): ActionRunner => {
     case "transfer":
       return runTransfer(action);
     case "upgrade":
-      return runUpgrade(action);
+      return runUpgrade();
     case "withdraw":
       return runWithdraw(action);
   }

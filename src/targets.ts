@@ -1,4 +1,4 @@
-import { FindFilter, FindOpts, Target, TargetDescription } from "state";
+import { FindFilter, FindOpts, TargetDescription } from "state";
 import { Predicate, composePredicates } from "utils/utils";
 
 import { getCreepCachedTarget } from "memory";
@@ -29,21 +29,19 @@ export const optsToFilter = (opts: FindOpts): Predicate<any> => {
   return filter;
 };
 
-export const getTarget = (
-  target: TargetDescription,
+export const getTarget = <F extends FindConstant = FindConstant>(
+  target: TargetDescription<F>,
   creep: Creep,
-): Target | null => {
+): FindTypes[F] | null => {
   switch (target.type) {
     case "closest": {
-      const cachedTarget = getCreepCachedTarget(creep);
+      const cachedTarget = getCreepCachedTarget<F>(creep);
       if (cachedTarget && optsToFilter(target.opts)(cachedTarget)) {
         return cachedTarget;
       }
       const opts = { filter: optsToFilter(target.opts) };
       return creep.pos.findClosestByPath(target.find, opts);
     }
-    case "position":
-      return creep.room.getPositionAt(target.position.x, target.position.y);
     case "specific":
       return Game.getObjectById(target.targetId);
   }

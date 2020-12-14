@@ -151,12 +151,7 @@ const [creeps, numOfEachRole] = defineCreeps([
     role: "upgrader",
     body: [WORK, CARRY, MOVE],
     states: [
-      state(
-        upgrade(
-          specificTarget("5bbcac939099fc012e635c1b" as Id<StructureController>),
-        ),
-        [transition(1, isEmpty())],
-      ),
+      state(upgrade(), [transition(1, isEmpty())]),
       state(
         withdraw(
           closestTarget(FIND_STRUCTURES, {

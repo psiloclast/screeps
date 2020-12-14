@@ -1,7 +1,5 @@
 import { ValuesType } from "utils/types";
 
-export type Target = FindTypes[FindConstant] | Structure;
-
 export type FindFilter = "lowHits" | "lowEnergy" | "hasEnergy";
 
 export interface FindOpts {
@@ -9,7 +7,16 @@ export interface FindOpts {
   structureType?: StructureConstant;
 }
 
-export const closestTarget = (find: FindConstant, opts?: FindOpts) =>
+interface ClosestTarget<F extends FindConstant = FindConstant> {
+  type: "closest";
+  find: F;
+  opts: FindOpts;
+}
+
+export const closestTarget = <F extends FindConstant = FindConstant>(
+  find: F,
+  opts?: FindOpts,
+): ClosestTarget<F> =>
   ({
     type: "closest",
     find,
@@ -21,61 +28,81 @@ export interface Position {
   y: number;
 }
 
-export const positionTarget = (x: number, y: number) =>
+export interface PositionTarget {
+  type: "position";
+  position: Position;
+}
+
+export const positionTarget = (x: number, y: number): PositionTarget =>
   ({
     type: "position",
     position: { x, y },
   } as const);
 
-export const specificTarget = (targetId: Id<Target>) =>
+interface SpecificTarget<F extends FindConstant = FindConstant> {
+  type: "specific";
+  targetId: Id<FindTypes[F]>;
+}
+
+export const specificTarget = <F extends FindConstant = FindConstant>(
+  targetId: Id<FindTypes[F]>,
+): SpecificTarget<F> =>
   ({
     type: "specific",
     targetId,
   } as const);
 
-export type TargetDescription =
-  | ReturnType<typeof closestTarget>
-  | ReturnType<typeof positionTarget>
-  | ReturnType<typeof specificTarget>;
+export type TargetDescription<F extends FindConstant = FindConstant> =
+  | ClosestTarget<F>
+  | SpecificTarget<F>;
 
-export const build = (target: TargetDescription) =>
+export const build = (target: TargetDescription<FIND_CONSTRUCTION_SITES>) =>
   ({
     type: "build",
     target,
   } as const);
 
-export const harvest = (target: TargetDescription) =>
+export const harvest = (
+  target: TargetDescription<FIND_SOURCES | FIND_MINERALS | FIND_DEPOSITS>,
+) =>
   ({
     type: "harvest",
     target,
   } as const);
 
-export const moveTo = (target: TargetDescription) =>
+export const moveTo = (
+  target: TargetDescription<FindConstant> | PositionTarget,
+) =>
   ({
     type: "moveTo",
     target,
   } as const);
 
-export const repair = (target: TargetDescription) =>
+export const repair = (
+  target: TargetDescription<FIND_STRUCTURES | FIND_MY_STRUCTURES>,
+) =>
   ({
     type: "repair",
     target,
   } as const);
 
-export const transfer = (target: TargetDescription) =>
+export const transfer = (
+  target: TargetDescription<FIND_CREEPS | FIND_STRUCTURES | FIND_MY_STRUCTURES>,
+) =>
   ({
     type: "transfer",
     target,
   } as const);
 
-export const upgrade = (target: TargetDescription) =>
+export const upgrade = () =>
   ({
     type: "upgrade",
-    target,
   } as const);
 
 export const withdraw = (
-  target: TargetDescription,
+  target: TargetDescription<
+    FIND_STRUCTURES | FIND_MY_STRUCTURES | FIND_TOMBSTONES | FIND_RUINS
+  >,
   resourceType: ResourceConstant,
   amount?: number,
 ) =>
