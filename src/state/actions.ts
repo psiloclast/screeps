@@ -16,6 +16,12 @@ export const harvest = (
     target,
   } as const);
 
+export const pickup = (target: TargetDescription<FIND_DROPPED_RESOURCES>) =>
+  ({
+    type: "pickup",
+    target,
+  } as const);
+
 export const moveTo = (
   target: TargetDescription<FindConstant> | PositionTarget,
 ) =>
@@ -34,10 +40,14 @@ export const repair = (
 
 export const transfer = (
   target: TargetDescription<FIND_CREEPS | FIND_STRUCTURES | FIND_MY_STRUCTURES>,
+  resourceType: ResourceConstant,
+  amount?: number,
 ) =>
   ({
     type: "transfer",
     target,
+    resourceType,
+    amount,
   } as const);
 
 export const upgrade = () =>
@@ -62,6 +72,7 @@ export const withdraw = (
 export type BuildAction = ReturnType<typeof build>;
 export type HarvestAction = ReturnType<typeof harvest>;
 export type MoveToAction = ReturnType<typeof moveTo>;
+export type PickupAction = ReturnType<typeof pickup>;
 export type RepairAction = ReturnType<typeof repair>;
 export type TransferAction = ReturnType<typeof transfer>;
 export type UpgradeAction = ReturnType<typeof upgrade>;
@@ -71,6 +82,7 @@ export type Action =
   | BuildAction
   | HarvestAction
   | MoveToAction
+  | PickupAction
   | RepairAction
   | TransferAction
   | UpgradeAction

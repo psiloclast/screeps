@@ -5,6 +5,7 @@ import {
   BuildAction,
   HarvestAction,
   MoveToAction,
+  PickupAction,
   RepairAction,
   TransferAction,
   WithdrawAction,
@@ -45,6 +46,14 @@ const runMoveTo = (action: MoveToAction) => (creep: Creep) => {
   return { target };
 };
 
+const runPickup = (action: PickupAction) => (creep: Creep) => {
+  const target = getTarget(action.target, creep)!;
+  if (creep.pickup(target) === ERR_NOT_IN_RANGE) {
+    creep.moveTo(target, { visualizePathStyle: { stroke: "#ffffff" } });
+  }
+  return { target };
+};
+
 const runRepair = (action: RepairAction) => (creep: Creep) => {
   const target = getTarget(action.target, creep)!;
   if (creep.repair(target) === ERR_NOT_IN_RANGE) {
@@ -55,7 +64,10 @@ const runRepair = (action: RepairAction) => (creep: Creep) => {
 
 const runTransfer = (action: TransferAction) => (creep: Creep) => {
   const target = getTarget(action.target, creep)!;
-  if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+  if (
+    creep.transfer(target, action.resourceType, action.amount) ===
+    ERR_NOT_IN_RANGE
+  ) {
     creep.moveTo(target, {
       visualizePathStyle: { stroke: "#ffffff" },
     });
@@ -100,6 +112,8 @@ export const runAction = (action: Action): ActionRunner => {
       return runHarvest(action);
     case "moveTo":
       return runMoveTo(action);
+    case "pickup":
+      return runPickup(action);
     case "repair":
       return runRepair(action);
     case "transfer":

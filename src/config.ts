@@ -11,6 +11,7 @@ import {
   build,
   harvest,
   moveTo,
+  pickup,
   repair,
   transfer,
   upgrade,
@@ -30,6 +31,7 @@ type CreepRole =
   | "extension-filler"
   | "harvester"
   | "drop-harvester"
+  | "janitor"
   | "repairer"
   | "upgrader";
 
@@ -108,6 +110,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(
         transfer(
           specificTarget("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
+          RESOURCE_ENERGY,
         ),
         [transition(1, isEmpty())],
       ),
@@ -159,6 +162,7 @@ const [creeps, numOfEachRole] = defineCreeps([
               withinBounds("energy", { max: 0.99 }),
             ],
           }),
+          RESOURCE_ENERGY,
         ),
         [
           transition(
@@ -272,6 +276,29 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(moveTo(positionTarget(37, 40)), [
         transition(0, targetAvailable(FIND_CONSTRUCTION_SITES)),
+      ]),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
+  {
+    role: "janitor",
+    body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+    states: [
+      state(
+        transfer(
+          specificTarget("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
+          RESOURCE_ENERGY,
+        ),
+        [transition(1, isEmpty())],
+      ),
+      state(pickup(closestTarget(FIND_DROPPED_RESOURCES)), [
+        transition(2, noTargetAvailable(FIND_DROPPED_RESOURCES)),
+        transition(0, isFull()),
+      ]),
+      state(moveTo(positionTarget(37, 40)), [
+        transition(1, targetAvailable(FIND_DROPPED_RESOURCES)),
       ]),
     ],
     memory: {
