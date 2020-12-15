@@ -6,8 +6,7 @@ import {
   WithinBounds,
 } from "state/targets";
 import { Predicate, composePredicates } from "utils/utils";
-
-import { getCreepCachedTarget } from "memory";
+import { flushCreepCachedTarget, getCreepCachedTarget } from "memory";
 
 const parseValueEqualFilter = (filter: ValueEqual) => {
   switch (filter.property) {
@@ -61,8 +60,12 @@ export const getTarget = <F extends FindConstant = FindConstant>(
     case "closest": {
       const cachedTarget = getCreepCachedTarget<F>(creep);
       const screepFindOpts = parseFindOpts(target.opts);
-      if (cachedTarget && screepFindOpts.filter(cachedTarget)) {
-        return cachedTarget;
+      if (cachedTarget) {
+        if (screepFindOpts.filter(cachedTarget)) {
+          return cachedTarget;
+        } else {
+          flushCreepCachedTarget(creep);
+        }
       }
       return creep.pos.findClosestByPath(target.find, screepFindOpts);
     }
