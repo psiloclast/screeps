@@ -149,7 +149,7 @@ const [creeps, numOfEachRole] = defineCreeps([
   }),
   {
     role: "extension-filler",
-    body: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE],
+    body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
     states: [
       state(
         transfer(
