@@ -130,7 +130,7 @@ const [creeps, numOfEachRole] = defineCreeps([
   },
   ...duplicate(2, {
     role: "upgrader",
-    body: [WORK, CARRY, MOVE],
+    body: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE],
     states: [
       state(upgrade(), [transition(1, isEmpty())]),
       state(
@@ -149,7 +149,7 @@ const [creeps, numOfEachRole] = defineCreeps([
   }),
   {
     role: "extension-filler",
-    body: [WORK, CARRY, MOVE],
+    body: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE],
     states: [
       state(
         transfer(
@@ -204,7 +204,7 @@ const [creeps, numOfEachRole] = defineCreeps([
         repair(
           closestTarget(FIND_STRUCTURES, {
             filters: [
-              withinBounds("hits", { max: 50000, isPercent: false }),
+              withinBounds("hits", { max: 1000000, isPercent: false }),
               withinBounds("hits", { max: 0.99 }),
             ],
           }),
@@ -214,7 +214,7 @@ const [creeps, numOfEachRole] = defineCreeps([
             2,
             noTargetAvailable(FIND_STRUCTURES, {
               filters: [
-                withinBounds("hits", { max: 50000, isPercent: false }),
+                withinBounds("hits", { max: 1000000, isPercent: false }),
                 withinBounds("hits", { max: 0.99 }),
               ],
             }),
@@ -234,12 +234,12 @@ const [creeps, numOfEachRole] = defineCreeps([
         ),
         [transition(0, isFull())],
       ),
-      state(moveTo(positionTarget(40, 35)), [
+      state(moveTo(positionTarget(31, 38)), [
         transition(
           0,
           targetAvailable(FIND_STRUCTURES, {
             filters: [
-              withinBounds("hits", { max: 50000, isPercent: false }),
+              withinBounds("hits", { max: 1000000, isPercent: false }),
               withinBounds("hits", { max: 0.99 }),
             ],
           }),
