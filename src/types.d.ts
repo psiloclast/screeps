@@ -1,7 +1,9 @@
 // memory extension samples
 interface CreepMemory {
   currentStateId: number;
-  currentTargetId?: Id<FindTypes[FindConstant]>;
+  currentTargetId?: Id<
+    Exclude<FindTypes[FindConstant], RoomPosition | RoomPosition>
+  >;
 }
 
 interface Memory {

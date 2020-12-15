@@ -28,7 +28,11 @@ const runCreep = (creep: Creep) => {
   }
   const action = getCreepState(creep).action;
   const { target } = runAction(action)(creep);
-  if ((creep.spawning || newState(newStateId)) && target !== null) {
+  if (
+    (creep.spawning || newState(newStateId)) &&
+    target !== null &&
+    !(target instanceof RoomPosition || target instanceof Flag)
+  ) {
     setCreepCachedTarget(creep, target);
   }
 };
