@@ -18,16 +18,24 @@ const parseValueEqualFilter = (filter: ValueEqual) => {
 const parseWithinBoundsFilter = (filter: WithinBounds) => {
   const { min, max, isPercent } = filter.opts;
   switch (filter.property) {
-    case "hits":
-      return (s: Structure) => {
-        const value = isPercent ? s.hits / s.hitsMax : s.hits;
+    case "amount":
+      return (s: { amount: number }) => {
+        if (isPercent) {
+          throw new Error("can not use percent when filtering on amount");
+        }
+        const value = s.amount;
         return min <= value && value <= max;
       };
     case "energy":
-      return (s: Creep) => {
+      return (s: { store: StoreDefinition }) => {
         const value = isPercent
           ? s.store[RESOURCE_ENERGY] / s.store.getCapacity(RESOURCE_ENERGY)
           : s.store[RESOURCE_ENERGY];
+        return min <= value && value <= max;
+      };
+    case "hits":
+      return (s: { hits: number; hitsMax: number }) => {
+        const value = isPercent ? s.hits / s.hitsMax : s.hits;
         return min <= value && value <= max;
       };
   }

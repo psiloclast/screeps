@@ -11,7 +11,7 @@ export const valueEqual = (
     value,
   } as const);
 
-type WithinBoundsProperty = "hits" | "energy";
+type WithinBoundsProperty = "amount" | "energy" | "hits";
 interface WithinBoundsOpts {
   min?: number;
   max?: number;
