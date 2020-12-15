@@ -1,25 +1,28 @@
+import { State, state } from "state";
 import {
-  State,
   atTarget,
-  build,
-  closestTarget,
-  harvest,
   isEmpty,
   isFull,
-  moveTo,
   noTargetAvailable,
-  positionTarget,
-  repair,
-  specificTarget,
-  state,
   targetAvailable,
-  transfer,
   transition,
+} from "state/events";
+import {
+  build,
+  harvest,
+  moveTo,
+  repair,
+  transfer,
   upgrade,
-  valueEqual,
   withdraw,
+} from "state/actions";
+import {
+  closestTarget,
+  positionTarget,
+  specificTarget,
+  valueEqual,
   withinBounds,
-} from "state";
+} from "state/targets";
 
 type CreepRole =
   | "builder"
@@ -66,34 +69,6 @@ const defineCreeps = (
 };
 
 const [creeps, numOfEachRole] = defineCreeps([
-  {
-    role: "builder",
-    body: [WORK, CARRY, MOVE],
-    states: [
-      state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
-        transition(2, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
-        transition(1, isEmpty()),
-      ]),
-      state(
-        withdraw(
-          closestTarget(FIND_STRUCTURES, {
-            filters: [
-              valueEqual("structureType", STRUCTURE_CONTAINER),
-              withinBounds("energy", { min: 0.01 }),
-            ],
-          }),
-          RESOURCE_ENERGY,
-        ),
-        [transition(0, isFull())],
-      ),
-      state(moveTo(positionTarget(37, 40)), [
-        transition(0, targetAvailable(FIND_CONSTRUCTION_SITES)),
-      ]),
-    ],
-    memory: {
-      currentStateId: 0,
-    },
-  },
   {
     role: "drop-harvester",
     body: [WORK, WORK, WORK, WORK, WORK, MOVE],
@@ -153,7 +128,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       currentStateId: 0,
     },
   },
-  ...duplicate(4, {
+  ...duplicate(2, {
     role: "upgrader",
     body: [WORK, CARRY, MOVE],
     states: [
@@ -161,10 +136,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(
         withdraw(
           closestTarget(FIND_STRUCTURES, {
-            filters: [
-              valueEqual("structureType", STRUCTURE_CONTAINER),
-              withinBounds("energy", { min: 0.01 }),
-            ],
+            filters: [valueEqual("structureType", STRUCTURE_CONTAINER)],
           }),
           RESOURCE_ENERGY,
         ),

@@ -3,11 +3,11 @@ import {
   NoTargetAvailable,
   TargetAvailable,
   Transition,
-  closestTarget,
-} from "state";
+} from "state/events";
 
+import { closestTarget } from "state/targets";
 import { getCreepCachedTarget } from "memory";
-import { getTarget } from "targets";
+import { getTarget } from "targetParser";
 
 const checkIsEmpty = (creep: Creep): boolean =>
   creep.store[RESOURCE_ENERGY] === 0;

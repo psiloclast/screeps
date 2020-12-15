@@ -8,9 +8,9 @@ import {
   RepairAction,
   TransferAction,
   WithdrawAction,
-} from "state";
+} from "state/actions";
 
-import { getTarget } from "targets";
+import { getTarget } from "targetParser";
 
 const runBuild = (action: BuildAction) => (creep: Creep) => {
   const target = getTarget(action.target, creep)!;

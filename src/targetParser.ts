@@ -4,7 +4,7 @@ import {
   TargetDescription,
   ValueEqual,
   WithinBounds,
-} from "state";
+} from "state/targets";
 import { Predicate, composePredicates } from "utils/utils";
 
 import { getCreepCachedTarget } from "memory";
