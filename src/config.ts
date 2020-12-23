@@ -25,6 +25,8 @@ import {
   withinBounds,
 } from "state/targets";
 
+import { TowerAction } from "state/towerActions";
+
 type CreepRole =
   | "builder"
   | "courier"
@@ -42,9 +44,16 @@ interface CreepDefinition {
   memory: CreepMemory;
 }
 
+interface TowerDefinition {
+  action: TowerAction;
+}
+
 interface Config {
   creeps: {
     [name: string]: CreepDefinition;
+  };
+  towers: {
+    [id: string]: TowerDefinition;
   };
 }
 
@@ -110,6 +119,39 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(
         transfer(
           specificTarget("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
+          RESOURCE_ENERGY,
+        ),
+        [transition(1, isEmpty())],
+      ),
+      state(
+        withdraw(
+          closestTarget(FIND_STRUCTURES, {
+            filters: [
+              valueEqual("structureType", STRUCTURE_CONTAINER),
+              withinBounds("energy", { min: 0.01 }),
+            ],
+          }),
+          RESOURCE_ENERGY,
+        ),
+        [transition(0, isFull())],
+      ),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  },
+  {
+    role: "courier",
+    body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+    states: [
+      state(
+        transfer(
+          closestTarget(FIND_STRUCTURES, {
+            filters: [
+              valueEqual("structureType", STRUCTURE_TOWER),
+              withinBounds("energy", { max: 0.99 }),
+            ],
+          }),
           RESOURCE_ENERGY,
         ),
         [transition(1, isEmpty())],
@@ -200,7 +242,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       currentStateId: 0,
     },
   },
-  ...duplicate(2, {
+  ...duplicate(5, {
     role: "repairer",
     body: [WORK, CARRY, MOVE],
     states: [
@@ -208,7 +250,7 @@ const [creeps, numOfEachRole] = defineCreeps([
         repair(
           closestTarget(FIND_STRUCTURES, {
             filters: [
-              withinBounds("hits", { max: 1000000, isPercent: false }),
+              withinBounds("hits", { max: 10000000, isPercent: false }),
               withinBounds("hits", { max: 0.99 }),
             ],
           }),
@@ -218,7 +260,7 @@ const [creeps, numOfEachRole] = defineCreeps([
             2,
             noTargetAvailable(FIND_STRUCTURES, {
               filters: [
-                withinBounds("hits", { max: 1000000, isPercent: false }),
+                withinBounds("hits", { max: 10000000, isPercent: false }),
                 withinBounds("hits", { max: 0.99 }),
               ],
             }),
@@ -228,12 +270,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(
         withdraw(
-          closestTarget(FIND_STRUCTURES, {
-            filters: [
-              valueEqual("structureType", STRUCTURE_CONTAINER),
-              withinBounds("energy", { min: 0.01 }),
-            ],
-          }),
+          specificTarget("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
@@ -243,7 +280,7 @@ const [creeps, numOfEachRole] = defineCreeps([
           0,
           targetAvailable(FIND_STRUCTURES, {
             filters: [
-              withinBounds("hits", { max: 1000000, isPercent: false }),
+              withinBounds("hits", { max: 10000000, isPercent: false }),
               withinBounds("hits", { max: 0.99 }),
             ],
           }),
@@ -329,6 +366,14 @@ console.log("====================");
 
 const config: Config = {
   creeps,
+  towers: {
+    "5fd7e5e384a8d49a62d7dd1f": {
+      action: "attack",
+    },
+    "5fdc0872411cff7423070c57": {
+      action: "attack",
+    },
+  },
 };
 
 export default config;

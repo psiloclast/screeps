@@ -1,3 +1,5 @@
+import "core-js/features/array/flat-map";
+
 import {
   cleanMemoryOfDeadCreeps,
   flushCreepCachedTarget,
@@ -10,6 +12,7 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import { checkEvents } from "eventCheckers";
 import config from "config";
 import { runAction } from "actionRunners";
+import { runTowerAction } from "towerRunner";
 
 const newState = (newStateId?: number): newStateId is number =>
   newStateId !== undefined;
@@ -47,9 +50,20 @@ const replaceDeadCreeps = () =>
     }
   });
 
+const runTower = (tower: StructureTower) => {
+  const towerAction = config.towers[tower.id].action;
+  runTowerAction(towerAction)(tower);
+};
+
+const getRoomTowers = (room: Room): StructureTower[] =>
+  room.find(FIND_STRUCTURES, {
+    filter: structure => structure.structureType === STRUCTURE_TOWER,
+  }) as StructureTower[];
+
 export const loop = ErrorMapper.wrapLoop(() => {
   console.log(`Current game tick is ${Game.time}`);
   cleanMemoryOfDeadCreeps();
   replaceDeadCreeps();
   Object.values(Game.creeps).forEach(runCreep);
+  Object.values(Game.rooms).flatMap(getRoomTowers).forEach(runTower);
 });
