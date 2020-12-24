@@ -1,11 +1,12 @@
 import {
   Event,
-  NoTargetAvailable,
-  TargetAvailable,
+  InRoomEvent,
+  NoTargetAvailableEvent,
+  TargetAvailableEvent,
   Transition,
 } from "state/events";
 
-import { closestTarget } from "state/targets";
+import { closest } from "state/targets";
 import { getCreepCachedTarget } from "memory";
 import { getTarget } from "targetParser";
 
@@ -15,7 +16,10 @@ const checkIsEmpty = (creep: Creep): boolean =>
 const checkIsFull = (creep: Creep): boolean =>
   creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0;
 
-const atTarget = (creep: Creep): boolean => {
+const checkInRoom = (event: InRoomEvent) => (creep: Creep): boolean =>
+  creep.room.name === event.name;
+
+const checkAtTarget = (creep: Creep): boolean => {
   const target = getCreepCachedTarget(creep);
   if (target === undefined) {
     return false;
@@ -23,17 +27,17 @@ const atTarget = (creep: Creep): boolean => {
   return creep.pos.isEqualTo(target);
 };
 
-const checkTargetAvailable = (event: TargetAvailable) => (
+const checkTargetAvailable = (event: TargetAvailableEvent) => (
   creep: Creep,
 ): boolean => {
-  const target = closestTarget(event.find, event.opts);
+  const target = closest(event.find, event.opts);
   return getTarget(target, creep) !== null;
 };
 
-const checkNoTargetAvailable = (event: NoTargetAvailable) => (
+const checkNoTargetAvailable = (event: NoTargetAvailableEvent) => (
   creep: Creep,
 ): boolean => {
-  const target = closestTarget(event.find, event.opts);
+  const target = closest(event.find, event.opts);
   return getTarget(target, creep) === null;
 };
 
@@ -45,8 +49,10 @@ const checkEvent = (event: Event): EventChecker => {
       return checkIsEmpty;
     case "isFull":
       return checkIsFull;
+    case "inRoom":
+      return checkInRoom(event);
     case "atTarget":
-      return atTarget;
+      return checkAtTarget;
     case "targetAvailable":
       return checkTargetAvailable(event);
     case "noTargetAvailable":

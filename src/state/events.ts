@@ -12,6 +12,12 @@ export const isFull = () =>
     type: "isFull",
   } as const);
 
+export const inRoom = (name: string) =>
+  ({
+    type: "inRoom",
+    name,
+  } as const);
+
 export const atTarget = () => ({ type: "atTarget" } as const);
 
 export const targetAvailable = (find: FindConstant, opts?: FindOpts) =>
@@ -30,16 +36,18 @@ export const noTargetAvailable = (find: FindConstant, opts?: FindOpts) =>
 
 export type IsEmptyEvent = ReturnType<typeof isEmpty>;
 export type IsFullEvent = ReturnType<typeof isFull>;
+export type InRoomEvent = ReturnType<typeof inRoom>;
 export type AtTargetEvent = ReturnType<typeof atTarget>;
-export type TargetAvailable = ReturnType<typeof targetAvailable>;
-export type NoTargetAvailable = ReturnType<typeof noTargetAvailable>;
+export type TargetAvailableEvent = ReturnType<typeof targetAvailable>;
+export type NoTargetAvailableEvent = ReturnType<typeof noTargetAvailable>;
 
 export type Event =
   | IsEmptyEvent
   | IsFullEvent
+  | InRoomEvent
   | AtTargetEvent
-  | TargetAvailable
-  | NoTargetAvailable;
+  | TargetAvailableEvent
+  | NoTargetAvailableEvent;
 
 export type EventType = ValuesType<Pick<Event, "type">>;
 

@@ -1,6 +1,7 @@
 import { State, state } from "state";
 import {
   atTarget,
+  inRoom,
   isEmpty,
   isFull,
   noTargetAvailable,
@@ -10,6 +11,7 @@ import {
 import {
   build,
   harvest,
+  idle,
   moveTo,
   pickup,
   repair,
@@ -18,9 +20,10 @@ import {
   withdraw,
 } from "state/actions";
 import {
-  closestTarget,
-  positionTarget,
-  specificTarget,
+  closest,
+  object,
+  position,
+  room,
   valueEqual,
   withinBounds,
 } from "state/targets";
@@ -32,9 +35,11 @@ type CreepRole =
   | "courier"
   | "extension-filler"
   | "harvester"
+  | "healer"
   | "drop-harvester"
   | "janitor"
   | "repairer"
+  | "soldier"
   | "upgrader";
 
 interface CreepDefinition {
@@ -85,12 +90,10 @@ const [creeps, numOfEachRole] = defineCreeps([
     body: [WORK, WORK, WORK, WORK, WORK, MOVE],
     states: [
       state(
-        moveTo(
-          specificTarget("5fd4f1221908a302197a6000" as Id<StructureContainer>),
-        ),
+        moveTo(object("5fd4f1221908a302197a6000" as Id<StructureContainer>)),
         [transition(1, atTarget())],
       ),
-      state(harvest(closestTarget(FIND_SOURCES))),
+      state(harvest(closest(FIND_SOURCES))),
     ],
     memory: {
       currentStateId: 0,
@@ -101,12 +104,10 @@ const [creeps, numOfEachRole] = defineCreeps([
     body: [WORK, WORK, WORK, WORK, WORK, MOVE],
     states: [
       state(
-        moveTo(
-          specificTarget("5fd52c2de985fa737e8d34bb" as Id<StructureContainer>),
-        ),
+        moveTo(object("5fd52c2de985fa737e8d34bb" as Id<StructureContainer>)),
         [transition(1, atTarget())],
       ),
-      state(harvest(closestTarget(FIND_SOURCES))),
+      state(harvest(closest(FIND_SOURCES))),
     ],
     memory: {
       currentStateId: 0,
@@ -118,14 +119,14 @@ const [creeps, numOfEachRole] = defineCreeps([
     states: [
       state(
         transfer(
-          specificTarget("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
+          object("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
           RESOURCE_ENERGY,
         ),
         [transition(1, isEmpty())],
       ),
       state(
         withdraw(
-          closestTarget(FIND_STRUCTURES, {
+          closest(FIND_STRUCTURES, {
             filters: [
               valueEqual("structureType", STRUCTURE_CONTAINER),
               withinBounds("energy", { min: 0.01 }),
@@ -146,7 +147,7 @@ const [creeps, numOfEachRole] = defineCreeps([
     states: [
       state(
         transfer(
-          closestTarget(FIND_STRUCTURES, {
+          closest(FIND_STRUCTURES, {
             filters: [
               valueEqual("structureType", STRUCTURE_TOWER),
               withinBounds("energy", { max: 0.99 }),
@@ -158,7 +159,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(
         withdraw(
-          closestTarget(FIND_STRUCTURES, {
+          closest(FIND_STRUCTURES, {
             filters: [
               valueEqual("structureType", STRUCTURE_CONTAINER),
               withinBounds("energy", { min: 0.01 }),
@@ -180,7 +181,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       state(upgrade(), [transition(1, isEmpty())]),
       state(
         withdraw(
-          closestTarget(FIND_STRUCTURES, {
+          closest(FIND_STRUCTURES, {
             filters: [valueEqual("structureType", STRUCTURE_CONTAINER)],
           }),
           RESOURCE_ENERGY,
@@ -198,7 +199,7 @@ const [creeps, numOfEachRole] = defineCreeps([
     states: [
       state(
         transfer(
-          closestTarget(FIND_MY_STRUCTURES, {
+          closest(FIND_MY_STRUCTURES, {
             filters: [
               valueEqual("structureType", STRUCTURE_EXTENSION),
               withinBounds("energy", { max: 0.99 }),
@@ -221,12 +222,12 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(
         withdraw(
-          specificTarget("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
+          object("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
       ),
-      state(moveTo(positionTarget(37, 36)), [
+      state(moveTo(position(37, 36)), [
         transition(
           0,
           targetAvailable(FIND_MY_STRUCTURES, {
@@ -248,7 +249,7 @@ const [creeps, numOfEachRole] = defineCreeps([
     states: [
       state(
         repair(
-          closestTarget(FIND_STRUCTURES, {
+          closest(FIND_STRUCTURES, {
             filters: [
               withinBounds("hits", { max: 10000000, isPercent: false }),
               withinBounds("hits", { max: 0.99 }),
@@ -270,12 +271,12 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(
         withdraw(
-          specificTarget("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
+          object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
       ),
-      state(moveTo(positionTarget(31, 38)), [
+      state(moveTo(position(31, 38)), [
         transition(
           0,
           targetAvailable(FIND_STRUCTURES, {
@@ -295,13 +296,13 @@ const [creeps, numOfEachRole] = defineCreeps([
     role: "builder",
     body: [WORK, CARRY, MOVE],
     states: [
-      state(build(closestTarget(FIND_CONSTRUCTION_SITES)), [
+      state(build(closest(FIND_CONSTRUCTION_SITES)), [
         transition(2, noTargetAvailable(FIND_CONSTRUCTION_SITES)),
         transition(1, isEmpty()),
       ]),
       state(
         withdraw(
-          closestTarget(FIND_STRUCTURES, {
+          closest(FIND_STRUCTURES, {
             filters: [
               valueEqual("structureType", STRUCTURE_CONTAINER),
               withinBounds("energy", { min: 0.01 }),
@@ -311,7 +312,7 @@ const [creeps, numOfEachRole] = defineCreeps([
         ),
         [transition(0, isFull())],
       ),
-      state(moveTo(positionTarget(37, 40)), [
+      state(moveTo(position(37, 40)), [
         transition(0, targetAvailable(FIND_CONSTRUCTION_SITES)),
       ]),
     ],
@@ -325,14 +326,14 @@ const [creeps, numOfEachRole] = defineCreeps([
     states: [
       state(
         transfer(
-          specificTarget("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
+          object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
           RESOURCE_ENERGY,
         ),
         [transition(1, isEmpty())],
       ),
       state(
         pickup(
-          closestTarget(FIND_DROPPED_RESOURCES, {
+          closest(FIND_DROPPED_RESOURCES, {
             filters: [
               withinBounds("amount", {
                 min: 200,
@@ -347,7 +348,7 @@ const [creeps, numOfEachRole] = defineCreeps([
           transition(0, isFull()),
         ],
       ),
-      state(moveTo(positionTarget(37, 40)), [
+      state(moveTo(position(37, 40)), [
         transition(1, targetAvailable(FIND_DROPPED_RESOURCES)),
       ]),
     ],
@@ -355,6 +356,38 @@ const [creeps, numOfEachRole] = defineCreeps([
       currentStateId: 0,
     },
   },
+  ...duplicate(5, {
+    role: "soldier",
+    body: [
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+      TOUGH,
+      MOVE,
+    ],
+    states: [
+      state(moveTo(room("W5N59")), [transition(1, inRoom("W5N59"))]),
+      state(idle()),
+    ],
+    memory: {
+      currentStateId: 0,
+    },
+  }),
 ]);
 
 console.log("====== CONFIG ======");

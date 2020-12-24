@@ -1,6 +1,7 @@
 import {
   FindFilter,
   FindOpts,
+  ObjectTarget,
   TargetDescription,
   ValueEqual,
   WithinBounds,
@@ -60,13 +61,23 @@ const parseFindOpts = (findOpts: FindOpts): ScreepsFindOpts => ({
     .reduce(composePredicates, () => true),
 });
 
-export const getTarget = <F extends FindConstant = FindConstant>(
+export function getTarget<F extends FindConstant = FindConstant>(
+  target: ObjectTarget<F>,
+  creep: Creep,
+): FindTypes[F] | null;
+
+export function getTarget<F extends FindConstant = FindConstant>(
   target: TargetDescription<F>,
   creep: Creep,
-): FindTypes[F] | null => {
+): RoomPosition | null;
+
+export function getTarget<F extends FindConstant = FindConstant>(
+  target: TargetDescription<F>,
+  creep: Creep,
+): any {
   switch (target.type) {
     case "closest": {
-      const cachedTarget = getCreepCachedTarget<F>(creep);
+      const cachedTarget = getCreepCachedTarget(creep);
       const screepFindOpts = parseFindOpts(target.opts);
       if (cachedTarget) {
         if (screepFindOpts.filter(cachedTarget)) {
@@ -79,5 +90,17 @@ export const getTarget = <F extends FindConstant = FindConstant>(
     }
     case "specific":
       return Game.getObjectById(target.targetId);
+    case "position": {
+      return creep.room.getPositionAt(target.position.x, target.position.y);
+    }
+    case "room": {
+      const findExitConstant = creep.room.findExitTo(target.room.name);
+      if (findExitConstant === -2 || findExitConstant === -10) {
+        throw Error(
+          `${creep.name} is trying to move to an impossible room: ${target.room.name}`,
+        );
+      }
+      return creep.pos.findClosestByPath(findExitConstant);
+    }
   }
-};
+}

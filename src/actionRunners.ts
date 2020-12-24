@@ -2,8 +2,10 @@
 
 import {
   Action,
+  AttackAction,
   BuildAction,
   HarvestAction,
+  HealAction,
   MoveToAction,
   PickupAction,
   RepairAction,
@@ -12,6 +14,22 @@ import {
 } from "state/actions";
 
 import { getTarget } from "targetParser";
+
+const runAttack = (action: AttackAction) => (creep: Creep) => {
+  const target = getTarget(action.target, creep)!;
+  if (creep.attack(target) === ERR_NOT_IN_RANGE) {
+    creep.moveTo(target, { visualizePathStyle: { stroke: "#ff0000" } });
+  }
+  return { target };
+};
+
+const runAttackController = (creep: Creep) => {
+  const target = creep.room.controller!;
+  if (creep.attackController(target) === ERR_NOT_IN_RANGE) {
+    creep.moveTo(target, { visualizePathStyle: { stroke: "#ff0000" } });
+  }
+  return { target };
+};
 
 const runBuild = (action: BuildAction) => (creep: Creep) => {
   const target = getTarget(action.target, creep)!;
@@ -29,17 +47,20 @@ const runHarvest = (action: HarvestAction) => (creep: Creep) => {
   return { target };
 };
 
-const runMoveTo = (action: MoveToAction) => (creep: Creep) => {
-  const targetDescription = action.target;
-  let target;
-  if (targetDescription.type === "position") {
-    target = creep.room.getPositionAt(
-      targetDescription.position.x,
-      targetDescription.position.y,
-    )!;
-  } else {
-    target = getTarget(targetDescription, creep)!;
+const runHeal = (action: HealAction) => (creep: Creep) => {
+  const target = getTarget(action.target, creep)!;
+  if (creep.heal(target) === ERR_NOT_IN_RANGE) {
+    creep.moveTo(target, { visualizePathStyle: { stroke: "#00ff00" } });
   }
+  return { target };
+};
+
+const runIdle = () => ({
+  target: null,
+});
+
+const runMoveTo = (action: MoveToAction) => (creep: Creep) => {
+  const target = getTarget(action.target, creep)!;
   creep.moveTo(target, {
     visualizePathStyle: { stroke: "#ffffff" },
   });
@@ -75,7 +96,7 @@ const runTransfer = (action: TransferAction) => (creep: Creep) => {
   return { target };
 };
 
-const runUpgrade = () => (creep: Creep) => {
+const runUpgrade = (creep: Creep) => {
   const target = creep.room.controller!;
   if (creep.upgradeController(target) === ERR_NOT_IN_RANGE) {
     creep.moveTo(target, {
@@ -106,10 +127,18 @@ type ActionRunner = (creep: Creep) => ActionRunnerResult;
 
 export const runAction = (action: Action): ActionRunner => {
   switch (action.type) {
+    case "attack":
+      return runAttack(action);
+    case "attackController":
+      return runAttackController;
     case "build":
       return runBuild(action);
     case "harvest":
       return runHarvest(action);
+    case "heal":
+      return runHeal(action);
+    case "idle":
+      return runIdle;
     case "moveTo":
       return runMoveTo(action);
     case "pickup":
@@ -119,7 +148,7 @@ export const runAction = (action: Action): ActionRunner => {
     case "transfer":
       return runTransfer(action);
     case "upgrade":
-      return runUpgrade();
+      return runUpgrade;
     case "withdraw":
       return runWithdraw(action);
   }

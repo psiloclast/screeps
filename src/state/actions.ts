@@ -1,37 +1,57 @@
-import { PositionTarget, TargetDescription } from "./targets";
+import { ObjectTarget, TargetDescription } from "./targets";
 
 import { ValuesType } from "utils/types";
 
-export const build = (target: TargetDescription<FIND_CONSTRUCTION_SITES>) =>
+export const attack = (target: ObjectTarget<FIND_CREEPS | FIND_STRUCTURES>) =>
+  ({
+    type: "attack",
+    target,
+  } as const);
+
+export const attackController = () =>
+  ({
+    type: "attackController",
+  } as const);
+
+export const build = (target: ObjectTarget<FIND_CONSTRUCTION_SITES>) =>
   ({
     type: "build",
     target,
   } as const);
 
 export const harvest = (
-  target: TargetDescription<FIND_SOURCES | FIND_MINERALS | FIND_DEPOSITS>,
+  target: ObjectTarget<FIND_SOURCES | FIND_MINERALS | FIND_DEPOSITS>,
 ) =>
   ({
     type: "harvest",
     target,
   } as const);
 
-export const pickup = (target: TargetDescription<FIND_DROPPED_RESOURCES>) =>
+export const heal = (target: ObjectTarget<FIND_CREEPS>) =>
+  ({
+    type: "heal",
+    target,
+  } as const);
+
+export const idle = () =>
+  ({
+    type: "idle",
+  } as const);
+
+export const pickup = (target: ObjectTarget<FIND_DROPPED_RESOURCES>) =>
   ({
     type: "pickup",
     target,
   } as const);
 
-export const moveTo = (
-  target: TargetDescription<FindConstant> | PositionTarget,
-) =>
+export const moveTo = (target: TargetDescription<FindConstant>) =>
   ({
     type: "moveTo",
     target,
   } as const);
 
 export const repair = (
-  target: TargetDescription<FIND_STRUCTURES | FIND_MY_STRUCTURES>,
+  target: ObjectTarget<FIND_STRUCTURES | FIND_MY_STRUCTURES>,
 ) =>
   ({
     type: "repair",
@@ -39,7 +59,7 @@ export const repair = (
   } as const);
 
 export const transfer = (
-  target: TargetDescription<FIND_CREEPS | FIND_STRUCTURES | FIND_MY_STRUCTURES>,
+  target: ObjectTarget<FIND_CREEPS | FIND_STRUCTURES | FIND_MY_STRUCTURES>,
   resourceType: ResourceConstant,
   amount?: number,
 ) =>
@@ -56,7 +76,7 @@ export const upgrade = () =>
   } as const);
 
 export const withdraw = (
-  target: TargetDescription<
+  target: ObjectTarget<
     FIND_STRUCTURES | FIND_MY_STRUCTURES | FIND_TOMBSTONES | FIND_RUINS
   >,
   resourceType: ResourceConstant,
@@ -69,8 +89,12 @@ export const withdraw = (
     amount,
   } as const);
 
+export type AttackAction = ReturnType<typeof attack>;
+export type AttackControllerAction = ReturnType<typeof attackController>;
 export type BuildAction = ReturnType<typeof build>;
 export type HarvestAction = ReturnType<typeof harvest>;
+export type HealAction = ReturnType<typeof heal>;
+export type IdleAction = ReturnType<typeof idle>;
 export type MoveToAction = ReturnType<typeof moveTo>;
 export type PickupAction = ReturnType<typeof pickup>;
 export type RepairAction = ReturnType<typeof repair>;
@@ -79,8 +103,12 @@ export type UpgradeAction = ReturnType<typeof upgrade>;
 export type WithdrawAction = ReturnType<typeof withdraw>;
 
 export type Action =
+  | AttackAction
+  | AttackControllerAction
   | BuildAction
   | HarvestAction
+  | HealAction
+  | IdleAction
   | MoveToAction
   | PickupAction
   | RepairAction

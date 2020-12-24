@@ -46,51 +46,56 @@ export const defaultFindOpts = (): FindOpts => ({
   filters: [],
 });
 
-interface ClosestTarget<F extends FindConstant = FindConstant> {
+interface ClosestObjectTarget<F extends FindConstant = FindConstant> {
   type: "closest";
   find: F;
   opts: FindOpts;
 }
 
-export const closestTarget = <F extends FindConstant = FindConstant>(
+export const closest = <F extends FindConstant = FindConstant>(
   find: F,
   opts?: FindOpts,
-): ClosestTarget<F> =>
+): ClosestObjectTarget<F> =>
   ({
     type: "closest",
     find,
     opts: opts || defaultFindOpts(),
   } as const);
 
-export interface Position {
-  x: number;
-  y: number;
-}
-
-export interface PositionTarget {
-  type: "position";
-  position: Position;
-}
-
-export const positionTarget = (x: number, y: number): PositionTarget =>
+export const position = (x: number, y: number) =>
   ({
     type: "position",
     position: { x, y },
   } as const);
 
-interface SpecificTarget<F extends FindConstant = FindConstant> {
+export const room = (name: string) =>
+  ({
+    type: "room",
+    room: {
+      name,
+    },
+  } as const);
+
+interface SpecificObjectTarget<F extends FindConstant = FindConstant> {
   type: "specific";
   targetId: Id<FindTypes[F]>;
 }
 
-export const specificTarget = <F extends FindConstant = FindConstant>(
+export const object = <F extends FindConstant = FindConstant>(
   targetId: Id<FindTypes[F]>,
-): SpecificTarget<F> =>
+): SpecificObjectTarget<F> =>
   ({
     type: "specific",
     targetId,
   } as const);
 
+export type ObjectTarget<F extends FindConstant = FindConstant> =
+  | ClosestObjectTarget<F>
+  | SpecificObjectTarget<F>;
+export type PositionTarget = ReturnType<typeof position>;
+export type RoomTarget = ReturnType<typeof room>;
+
 export type TargetDescription<F extends FindConstant = FindConstant> =
-  | ClosestTarget<F>
-  | SpecificTarget<F>;
+  | ObjectTarget<F>
+  | PositionTarget
+  | RoomTarget;
