@@ -340,7 +340,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       currentStateId: 0,
     },
   },
-  ...duplicate(100, {
+  ...duplicate(20, {
     role: "soldier",
     body: [TOUGH, MOVE],
     states: [
