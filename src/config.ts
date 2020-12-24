@@ -11,7 +11,6 @@ import {
 import {
   build,
   harvest,
-  idle,
   moveTo,
   pickup,
   repair,
@@ -217,7 +216,7 @@ const [creeps, numOfEachRole] = defineCreeps([
         ),
         [transition(0, isFull())],
       ),
-      state(moveTo(position(37, 36)), [
+      state(moveTo(position(36, 36)), [
         transition(
           0,
           targetAvailable(FIND_MY_STRUCTURES, {
@@ -333,7 +332,7 @@ const [creeps, numOfEachRole] = defineCreeps([
           transition(0, isFull()),
         ],
       ),
-      state(moveTo(position(37, 40)), [
+      state(moveTo(position(37, 32)), [
         transition(1, targetAvailable(FIND_DROPPED_RESOURCES)),
       ]),
     ],
