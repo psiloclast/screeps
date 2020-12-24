@@ -126,12 +126,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(
         withdraw(
-          closest(FIND_STRUCTURES, {
-            filters: [
-              valueEqual("structureType", STRUCTURE_CONTAINER),
-              withinBounds("energy", { min: 0.01 }),
-            ],
-          }),
+          object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
@@ -159,12 +154,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(
         withdraw(
-          closest(FIND_STRUCTURES, {
-            filters: [
-              valueEqual("structureType", STRUCTURE_CONTAINER),
-              withinBounds("energy", { min: 0.01 }),
-            ],
-          }),
+          object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
@@ -222,7 +212,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       ),
       state(
         withdraw(
-          object("5fd4ccce3e2158930bcbc0d7" as Id<StructureSpawn>),
+          object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
@@ -302,12 +292,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       ]),
       state(
         withdraw(
-          closest(FIND_STRUCTURES, {
-            filters: [
-              valueEqual("structureType", STRUCTURE_CONTAINER),
-              withinBounds("energy", { min: 0.01 }),
-            ],
-          }),
+          object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
           RESOURCE_ENERGY,
         ),
         [transition(0, isFull())],
@@ -356,7 +341,7 @@ const [creeps, numOfEachRole] = defineCreeps([
       currentStateId: 0,
     },
   },
-  ...duplicate(5, {
+  ...duplicate(20, {
     role: "soldier",
     body: [
       TOUGH,
