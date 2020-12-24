@@ -65,5 +65,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
   cleanMemoryOfDeadCreeps();
   replaceDeadCreeps();
   Object.values(Game.creeps).forEach(runCreep);
-  Object.values(Game.rooms).flatMap(getRoomTowers).forEach(runTower);
+  Object.values(Game.rooms)
+    .filter(room => room.controller?.my)
+    .flatMap(getRoomTowers)
+    .forEach(runTower);
 });
