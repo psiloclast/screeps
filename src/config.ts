@@ -328,12 +328,34 @@ const [creeps, numOfEachRole] = defineCreeps([
           }),
         ),
         [
-          transition(2, noTargetAvailable(FIND_DROPPED_RESOURCES)),
+          transition(
+            2,
+            noTargetAvailable(FIND_DROPPED_RESOURCES, {
+              filters: [
+                withinBounds("amount", {
+                  min: 200,
+                  max: 99999999999999,
+                  isPercent: false,
+                }),
+              ],
+            }),
+          ),
           transition(0, isFull()),
         ],
       ),
       state(moveTo(position(37, 32)), [
-        transition(1, targetAvailable(FIND_DROPPED_RESOURCES)),
+        transition(
+          1,
+          targetAvailable(FIND_DROPPED_RESOURCES, {
+            filters: [
+              withinBounds("amount", {
+                min: 200,
+                max: 99999999999999,
+                isPercent: false,
+              }),
+            ],
+          }),
+        ),
       ]),
     ],
     memory: {
