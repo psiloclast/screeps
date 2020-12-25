@@ -2,6 +2,7 @@ import {
   Event,
   InRoomEvent,
   NoTargetAvailableEvent,
+  StateId,
   TargetAvailableEvent,
   Transition,
 } from "state/events";
@@ -63,7 +64,7 @@ const checkEvent = (event: Event): EventChecker => {
 export const checkEvents = (
   transitions: Transition[],
   creep: Creep,
-): number | undefined => {
+): StateId | undefined => {
   const eventRan = transitions.find(t => checkEvent(t.event)(creep));
   return eventRan && eventRan.stateId;
 };

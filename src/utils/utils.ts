@@ -18,3 +18,19 @@ export const hasOwnProperty = <T extends {}, P extends PropertyKey>(
   property: P,
   // eslint-disable-next-line no-prototype-builtins
 ): obj is T & Record<P, unknown> => obj.hasOwnProperty(property);
+
+export const mapByKey = <T>(
+  xs: T[],
+  keyFn: (t: T) => string,
+): Record<string, T> => {
+  const numOfEachKey: Record<string, number> = {};
+  const numSuffix = (k: string): number =>
+    numOfEachKey[k] !== undefined ? ++numOfEachKey[k] : (numOfEachKey[k] = 0);
+  return xs.reduce((acc, x) => {
+    const key = keyFn(x);
+    return {
+      ...acc,
+      [`${key}-${numSuffix(key)}`]: x,
+    };
+  }, {} as Record<string, T>);
+};

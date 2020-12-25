@@ -1,6 +1,6 @@
 // memory extension samples
 interface CreepMemory {
-  currentStateId: number;
+  currentStateId: import("./state/events").StateId;
   cachedTarget?: {
     target:
       | import("./state/targets").SpecificObjectTarget

@@ -1,4 +1,5 @@
 import { State } from "state";
+import { StateId } from "state/events";
 import config from "config";
 
 export const cleanMemoryOfDeadCreeps = (): void => {
@@ -12,7 +13,7 @@ export const cleanMemoryOfDeadCreeps = (): void => {
 export const getCreepState = (creep: Creep): State =>
   config.creeps[creep.name].states[creep.memory.currentStateId];
 
-export const setCreepState = (creep: Creep, stateId: number): void => {
+export const setCreepState = (creep: Creep, stateId: StateId): void => {
   creep.memory.currentStateId = stateId;
 };
 

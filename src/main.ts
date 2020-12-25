@@ -10,12 +10,13 @@ import {
 } from "memory";
 
 import { ErrorMapper } from "utils/ErrorMapper";
+import { StateId } from "state/events";
 import { checkEvents } from "eventCheckers";
 import config from "config";
 import { runAction } from "actionRunners";
 import { runTowerAction } from "towerRunner";
 
-const newState = (newStateId?: number): newStateId is number =>
+const newState = (newStateId?: StateId): newStateId is StateId =>
   newStateId !== undefined;
 
 const runCreep = (creep: Creep) => {
