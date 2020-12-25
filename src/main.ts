@@ -3,6 +3,7 @@ import "core-js/features/array/flat-map";
 import {
   cleanMemoryOfDeadCreeps,
   flushCreepCachedTarget,
+  getCreepCachedTarget,
   getCreepState,
   setCreepCachedTarget,
   setCreepState,
@@ -31,10 +32,11 @@ const runCreep = (creep: Creep) => {
   }
   const action = getCreepState(creep).action;
   const { target } = runAction(action)(creep);
+  const [cachedTarget] = getCreepCachedTarget(creep);
   if (
-    (creep.spawning || newState(newStateId)) &&
     target !== null &&
-    !(target instanceof RoomPosition || target instanceof Flag)
+    cachedTarget === undefined &&
+    !(target instanceof Flag)
   ) {
     setCreepCachedTarget(creep, target);
   }

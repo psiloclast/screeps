@@ -1,9 +1,12 @@
 // memory extension samples
 interface CreepMemory {
   currentStateId: number;
-  currentTargetId?: Id<
-    Exclude<FindTypes[FindConstant], RoomPosition | RoomPosition>
-  >;
+  cachedTarget?: {
+    target:
+      | import("./state/targets").SpecificObjectTarget
+      | import("./state/targets").PositionTarget;
+    metaData: import("./memory").CachedMetaData;
+  };
 }
 
 interface Memory {

@@ -46,7 +46,7 @@ export const defaultFindOpts = (): FindOpts => ({
   filters: [],
 });
 
-interface ClosestObjectTarget<F extends FindConstant = FindConstant> {
+export interface ClosestObjectTarget<F extends FindConstant = FindConstant> {
   type: "closest";
   find: F;
   opts: FindOpts;
@@ -76,17 +76,17 @@ export const room = (name: string) =>
     },
   } as const);
 
-interface SpecificObjectTarget<F extends FindConstant = FindConstant> {
-  type: "specific";
-  targetId: Id<FindTypes[F]>;
+export interface SpecificObjectTarget<F extends FindConstant = FindConstant> {
+  type: "object";
+  id: Id<FindTypes[F]>;
 }
 
 export const object = <F extends FindConstant = FindConstant>(
-  targetId: Id<FindTypes[F]>,
+  id: Id<FindTypes[F]>,
 ): SpecificObjectTarget<F> =>
   ({
-    type: "specific",
-    targetId,
+    type: "object",
+    id,
   } as const);
 
 export type ObjectTarget<F extends FindConstant = FindConstant> =

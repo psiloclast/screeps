@@ -74,10 +74,10 @@ export function getTarget<F extends FindConstant = FindConstant>(
 export function getTarget<F extends FindConstant = FindConstant>(
   target: TargetDescription<F>,
   creep: Creep,
-): any {
+): FindTypes[F] | RoomPosition | null {
   switch (target.type) {
     case "closest": {
-      const cachedTarget = getCreepCachedTarget(creep);
+      const [cachedTarget] = getCreepCachedTarget<F>(creep);
       const screepFindOpts = parseFindOpts(target.opts);
       if (cachedTarget) {
         if (screepFindOpts.filter(cachedTarget)) {
@@ -88,14 +88,25 @@ export function getTarget<F extends FindConstant = FindConstant>(
       }
       return creep.pos.findClosestByPath(target.find, screepFindOpts);
     }
-    case "specific":
-      return Game.getObjectById(target.targetId);
+    case "object":
+      return Game.getObjectById(target.id);
     case "position": {
       return creep.room.getPositionAt(target.position.x, target.position.y);
     }
     case "room": {
+      const [cachedTarget, { roomName }] = getCreepCachedTarget<F>(creep);
+      if (cachedTarget) {
+        if (creep.room.name === roomName) {
+          return cachedTarget;
+        } else {
+          flushCreepCachedTarget(creep);
+        }
+      }
       const findExitConstant = creep.room.findExitTo(target.room.name);
-      if (findExitConstant === -2 || findExitConstant === -10) {
+      if (
+        findExitConstant === ERR_NO_PATH ||
+        findExitConstant === ERR_INVALID_ARGS
+      ) {
         throw Error(
           `${creep.name} is trying to move to an impossible room: ${target.room.name}`,
         );

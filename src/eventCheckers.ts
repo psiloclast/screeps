@@ -20,7 +20,7 @@ const checkInRoom = (event: InRoomEvent) => (creep: Creep): boolean =>
   creep.room.name === event.name;
 
 const checkAtTarget = (creep: Creep): boolean => {
-  const target = getCreepCachedTarget(creep);
+  const [target] = getCreepCachedTarget(creep);
   if (target === undefined) {
     return false;
   }
