@@ -10,6 +10,14 @@ import {
   transition,
 } from "state/events";
 import {
+  TargetDescription,
+  closest,
+  object,
+  position,
+  room,
+  valueIs,
+} from "state/targets";
+import {
   build,
   harvest,
   moveTo,
@@ -19,7 +27,6 @@ import {
   upgrade,
   withdraw,
 } from "state/actions";
-import { closest, object, position, room, valueIs } from "state/targets";
 
 import { TowerAction } from "state/towerActions";
 import { mapByKey } from "utils/utils";
@@ -48,6 +55,9 @@ interface TowerDefinition {
 }
 
 interface Config {
+  constants: {
+    targets: Record<string, TargetDescription<FindConstant>>;
+  };
   creeps: Record<string, CreepDefinition>;
   towers: Record<string, TowerDefinition>;
 }
@@ -63,15 +73,40 @@ const defineCreeps = (definitions: CreepDefinition[]): Config["creeps"] => {
 };
 
 const config: Config = {
+  constants: {
+    targets: {
+      "left-container": object(
+        "5fd4f1221908a302197a6000" as Id<StructureContainer>,
+      ),
+      "right-container": object(
+        "5fd52c2de985fa737e8d34bb" as Id<StructureContainer>,
+      ),
+      store: object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
+      "low-energy-extension": closest(FIND_MY_STRUCTURES, {
+        filters: [
+          valueIs("EQ", "structureType", STRUCTURE_EXTENSION),
+          valueIs("LT", "energy", 1),
+        ],
+      }),
+      "low-hits-structure": closest(FIND_STRUCTURES, {
+        filters: [
+          valueIs("LTE", "hits", 10000000, { isPercent: false }),
+          valueIs("LT", "hits", 1),
+        ],
+      }),
+      "dropped-resources": closest(FIND_DROPPED_RESOURCES, {
+        filters: [valueIs("GT", "amount", 200, { isPercent: false })],
+      }),
+    },
+  },
   creeps: defineCreeps([
     {
       role: "drop-harvester",
       body: [WORK, WORK, WORK, WORK, WORK, MOVE],
       states: statesToMap([
-        state(
-          moveTo(object("5fd4f1221908a302197a6000" as Id<StructureContainer>)),
-          [transition("harvest-0", atTarget())],
-        ),
+        state(moveTo("left-container"), [
+          transition("harvest-0", atTarget("left-container")),
+        ]),
         state(harvest(closest(FIND_SOURCES))),
       ]),
       memory: {
@@ -82,10 +117,9 @@ const config: Config = {
       role: "drop-harvester",
       body: [WORK, WORK, WORK, WORK, WORK, MOVE],
       states: statesToMap([
-        state(
-          moveTo(object("5fd52c2de985fa737e8d34bb" as Id<StructureContainer>)),
-          [transition("harvest-0", atTarget())],
-        ),
+        state(moveTo("right-container"), [
+          transition("harvest-0", atTarget("right-container")),
+        ]),
         state(harvest(closest(FIND_SOURCES))),
       ]),
       memory: {
@@ -103,13 +137,9 @@ const config: Config = {
           ),
           [transition("withdraw-0", isEmpty())],
         ),
-        state(
-          withdraw(
-            object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
-            RESOURCE_ENERGY,
-          ),
-          [transition("transfer-0", isFull())],
-        ),
+        state(withdraw("store", RESOURCE_ENERGY), [
+          transition("transfer-0", isFull()),
+        ]),
       ]),
       memory: {
         currentStateId: "transfer-0",
@@ -131,13 +161,9 @@ const config: Config = {
           ),
           [transition("withdraw-0", isEmpty())],
         ),
-        state(
-          withdraw(
-            object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
-            RESOURCE_ENERGY,
-          ),
-          [transition("transfer-0", isFull())],
-        ),
+        state(withdraw("store", RESOURCE_ENERGY), [
+          transition("transfer-0", isFull()),
+        ]),
       ]),
       memory: {
         currentStateId: "transfer-0",
@@ -148,15 +174,9 @@ const config: Config = {
       body: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE],
       states: statesToMap([
         state(upgrade(), [transition("withdraw-0", isEmpty())]),
-        state(
-          withdraw(
-            closest(FIND_STRUCTURES, {
-              filters: [valueIs("EQ", "structureType", STRUCTURE_CONTAINER)],
-            }),
-            RESOURCE_ENERGY,
-          ),
-          [transition("upgrade-0", isFull())],
-        ),
+        state(withdraw("left-container", RESOURCE_ENERGY), [
+          transition("upgrade-0", isFull()),
+        ]),
       ]),
       memory: {
         currentStateId: "upgrade-0",
@@ -166,46 +186,15 @@ const config: Config = {
       role: "extension-filler",
       body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
       states: statesToMap([
-        state(
-          transfer(
-            closest(FIND_MY_STRUCTURES, {
-              filters: [
-                valueIs("EQ", "structureType", STRUCTURE_EXTENSION),
-                valueIs("LT", "energy", 1),
-              ],
-            }),
-            RESOURCE_ENERGY,
-          ),
-          [
-            transition(
-              "moveTo-0",
-              noTargetAvailable(FIND_MY_STRUCTURES, {
-                filters: [
-                  valueIs("EQ", "structureType", STRUCTURE_EXTENSION),
-                  valueIs("LT", "energy", 1),
-                ],
-              }),
-            ),
-            transition("withdraw-0", isEmpty()),
-          ],
-        ),
-        state(
-          withdraw(
-            object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
-            RESOURCE_ENERGY,
-          ),
-          [transition("transfer-0", isFull())],
-        ),
+        state(transfer("low-energy-extension", RESOURCE_ENERGY), [
+          transition("moveTo-0", noTargetAvailable("low-energy-extension")),
+          transition("withdraw-0", isEmpty()),
+        ]),
+        state(withdraw("store", RESOURCE_ENERGY), [
+          transition("transfer-0", isFull()),
+        ]),
         state(moveTo(position(36, 36)), [
-          transition(
-            "transfer-0",
-            targetAvailable(FIND_MY_STRUCTURES, {
-              filters: [
-                valueIs("EQ", "structureType", STRUCTURE_EXTENSION),
-                valueIs("LT", "energy", 1),
-              ],
-            }),
-          ),
+          transition("transfer-0", targetAvailable("low-energy-extension")),
         ]),
       ]),
       memory: {
@@ -216,45 +205,15 @@ const config: Config = {
       role: "repairer",
       body: [WORK, CARRY, MOVE],
       states: statesToMap([
-        state(
-          repair(
-            closest(FIND_STRUCTURES, {
-              filters: [
-                valueIs("LTE", "hits", 10000000, { isPercent: false }),
-                valueIs("LT", "hits", 1),
-              ],
-            }),
-          ),
-          [
-            transition(
-              "moveTo-0",
-              noTargetAvailable(FIND_STRUCTURES, {
-                filters: [
-                  valueIs("LTE", "hits", 10000000, { isPercent: false }),
-                  valueIs("LT", "hits", 1),
-                ],
-              }),
-            ),
-            transition("withdraw-0", isEmpty()),
-          ],
-        ),
-        state(
-          withdraw(
-            object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
-            RESOURCE_ENERGY,
-          ),
-          [transition("repair-0", isFull())],
-        ),
+        state(repair("low-hits-structure"), [
+          transition("moveTo-0", noTargetAvailable("low-hits-structure")),
+          transition("withdraw-0", isEmpty()),
+        ]),
+        state(withdraw("store", RESOURCE_ENERGY), [
+          transition("repair-0", isFull()),
+        ]),
         state(moveTo(position(31, 38)), [
-          transition(
-            "repair-0",
-            targetAvailable(FIND_STRUCTURES, {
-              filters: [
-                valueIs("LTE", "hits", 10000000, { isPercent: false }),
-                valueIs("LT", "hits", 1),
-              ],
-            }),
-          ),
+          transition("repair-0", targetAvailable("low-hits-structure")),
         ]),
       ]),
       memory: {
@@ -266,18 +225,20 @@ const config: Config = {
       body: [WORK, CARRY, MOVE],
       states: statesToMap([
         state(build(closest(FIND_CONSTRUCTION_SITES)), [
-          transition("moveTo-0", noTargetAvailable(FIND_CONSTRUCTION_SITES)),
+          transition(
+            "moveTo-0",
+            noTargetAvailable(closest(FIND_CONSTRUCTION_SITES)),
+          ),
           transition("withdraw-0", isEmpty()),
         ]),
-        state(
-          withdraw(
-            object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
-            RESOURCE_ENERGY,
-          ),
-          [transition("build-0", isFull())],
-        ),
+        state(withdraw("store", RESOURCE_ENERGY), [
+          transition("build-0", isFull()),
+        ]),
         state(moveTo(position(37, 40)), [
-          transition("build-0", targetAvailable(FIND_CONSTRUCTION_SITES)),
+          transition(
+            "build-0",
+            targetAvailable(closest(FIND_CONSTRUCTION_SITES)),
+          ),
         ]),
       ]),
       memory: {
@@ -288,36 +249,15 @@ const config: Config = {
       role: "janitor",
       body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
       states: statesToMap([
-        state(
-          transfer(
-            object("5fd836db31977180cbf79bb4" as Id<StructureStorage>),
-            RESOURCE_ENERGY,
-          ),
-          [transition("pickup-0", isEmpty())],
-        ),
-        state(
-          pickup(
-            closest(FIND_DROPPED_RESOURCES, {
-              filters: [valueIs("GT", "amount", 200, { isPercent: false })],
-            }),
-          ),
-          [
-            transition(
-              "moveTo-0",
-              noTargetAvailable(FIND_DROPPED_RESOURCES, {
-                filters: [valueIs("GT", "amount", 200, { isPercent: false })],
-              }),
-            ),
-            transition("transfer-0", isFull()),
-          ],
-        ),
+        state(transfer("store", RESOURCE_ENERGY), [
+          transition("pickup-0", isEmpty()),
+        ]),
+        state(pickup("dropped-resources"), [
+          transition("moveTo-0", noTargetAvailable("dropped-resources")),
+          transition("transfer-0", isFull()),
+        ]),
         state(moveTo(position(37, 32)), [
-          transition(
-            "pickup-0",
-            targetAvailable(FIND_DROPPED_RESOURCES, {
-              filters: [valueIs("GT", "amount", 200, { isPercent: false })],
-            }),
-          ),
+          transition("pickup-0", targetAvailable("dropped-resources")),
         ]),
       ]),
       memory: {

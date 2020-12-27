@@ -54,7 +54,7 @@ export function valueIs(
     property,
     value: propertyValue,
     opts: {
-      isPercent: true,
+      isPercent: !(operator === "EQ" || operator === "NEQ"),
       ...opts,
     },
   };

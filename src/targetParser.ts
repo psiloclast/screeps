@@ -9,6 +9,8 @@ import {
 import { Predicate, composePredicates } from "utils/utils";
 import { flushCreepCachedTarget, getCreepCachedTarget } from "memory";
 
+import config from "config";
+
 const valueIsOperators: Record<Equality, (a: any, b: any) => boolean> = {
   EQ: (a, b) => a === b,
   NEQ: (a, b) => a !== b,
@@ -70,19 +72,23 @@ const parseFindOpts = (findOpts: FindOpts): ScreepsFindOpts => ({
 });
 
 export function getTarget<F extends FindConstant = FindConstant>(
-  target: ObjectTarget<F>,
+  target: ObjectTarget<F> | string,
   creep: Creep,
 ): FindTypes[F] | null;
 
 export function getTarget<F extends FindConstant = FindConstant>(
-  target: TargetDescription<F>,
+  target: TargetDescription<F> | string,
   creep: Creep,
 ): RoomPosition | null;
 
 export function getTarget<F extends FindConstant = FindConstant>(
-  target: TargetDescription<F>,
+  target: TargetDescription<F> | string,
   creep: Creep,
 ): FindTypes[F] | RoomPosition | null {
+  target =
+    typeof target === "string"
+      ? (config.constants.targets[target] as TargetDescription<F>)
+      : target;
   switch (target.type) {
     case "closest": {
       const [cachedTarget] = getCreepCachedTarget<F>(creep);

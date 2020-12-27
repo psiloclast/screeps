@@ -1,4 +1,4 @@
-import { FindOpts, defaultFindOpts } from "./targets";
+import { ClosestObjectTarget, SpecificObjectTarget } from "./targets";
 
 import { Action } from "./actions";
 import { ValuesType } from "utils/types";
@@ -19,20 +19,19 @@ export const inRoom = (name: string) =>
     name,
   } as const);
 
-export const atTarget = () => ({ type: "atTarget" } as const);
+export const atTarget = (target: SpecificObjectTarget | string) =>
+  ({ type: "atTarget", target } as const);
 
-export const targetAvailable = (find: FindConstant, opts?: FindOpts) =>
+export const targetAvailable = (target: ClosestObjectTarget | string) =>
   ({
     type: "targetAvailable",
-    find,
-    opts: opts || defaultFindOpts(),
+    target,
   } as const);
 
-export const noTargetAvailable = (find: FindConstant, opts?: FindOpts) =>
+export const noTargetAvailable = (target: ClosestObjectTarget | string) =>
   ({
     type: "noTargetAvailable",
-    find,
-    opts: opts || defaultFindOpts(),
+    target,
   } as const);
 
 export type IsEmptyEvent = ReturnType<typeof isEmpty>;

@@ -2,7 +2,9 @@ import { ObjectTarget, TargetDescription } from "./targets";
 
 import { ValuesType } from "utils/types";
 
-export const attack = (target: ObjectTarget<FIND_CREEPS | FIND_STRUCTURES>) =>
+export const attack = (
+  target: ObjectTarget<FIND_CREEPS | FIND_STRUCTURES> | string,
+) =>
   ({
     type: "attack",
     target,
@@ -13,21 +15,21 @@ export const attackController = () =>
     type: "attackController",
   } as const);
 
-export const build = (target: ObjectTarget<FIND_CONSTRUCTION_SITES>) =>
+export const build = (target: ObjectTarget<FIND_CONSTRUCTION_SITES> | string) =>
   ({
     type: "build",
     target,
   } as const);
 
 export const harvest = (
-  target: ObjectTarget<FIND_SOURCES | FIND_MINERALS | FIND_DEPOSITS>,
+  target: ObjectTarget<FIND_SOURCES | FIND_MINERALS | FIND_DEPOSITS> | string,
 ) =>
   ({
     type: "harvest",
     target,
   } as const);
 
-export const heal = (target: ObjectTarget<FIND_CREEPS>) =>
+export const heal = (target: ObjectTarget<FIND_CREEPS> | string) =>
   ({
     type: "heal",
     target,
@@ -38,20 +40,20 @@ export const idle = () =>
     type: "idle",
   } as const);
 
-export const pickup = (target: ObjectTarget<FIND_DROPPED_RESOURCES>) =>
+export const pickup = (target: ObjectTarget<FIND_DROPPED_RESOURCES> | string) =>
   ({
     type: "pickup",
     target,
   } as const);
 
-export const moveTo = (target: TargetDescription<FindConstant>) =>
+export const moveTo = (target: TargetDescription<FindConstant> | string) =>
   ({
     type: "moveTo",
     target,
   } as const);
 
 export const repair = (
-  target: ObjectTarget<FIND_STRUCTURES | FIND_MY_STRUCTURES>,
+  target: ObjectTarget<FIND_STRUCTURES | FIND_MY_STRUCTURES> | string,
 ) =>
   ({
     type: "repair",
@@ -59,7 +61,9 @@ export const repair = (
   } as const);
 
 export const transfer = (
-  target: ObjectTarget<FIND_CREEPS | FIND_STRUCTURES | FIND_MY_STRUCTURES>,
+  target:
+    | ObjectTarget<FIND_CREEPS | FIND_STRUCTURES | FIND_MY_STRUCTURES>
+    | string,
   resourceType: ResourceConstant,
   amount?: number,
 ) =>
@@ -76,9 +80,11 @@ export const upgrade = () =>
   } as const);
 
 export const withdraw = (
-  target: ObjectTarget<
-    FIND_STRUCTURES | FIND_MY_STRUCTURES | FIND_TOMBSTONES | FIND_RUINS
-  >,
+  target:
+    | ObjectTarget<
+        FIND_STRUCTURES | FIND_MY_STRUCTURES | FIND_TOMBSTONES | FIND_RUINS
+      >
+    | string,
   resourceType: ResourceConstant,
   amount?: number,
 ) =>

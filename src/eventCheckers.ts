@@ -7,7 +7,6 @@ import {
   Transition,
 } from "state/events";
 
-import { closest } from "state/targets";
 import { getCreepCachedTarget } from "memory";
 import { getTarget } from "targetParser";
 
@@ -31,15 +30,13 @@ const checkAtTarget = (creep: Creep): boolean => {
 const checkTargetAvailable = (event: TargetAvailableEvent) => (
   creep: Creep,
 ): boolean => {
-  const target = closest(event.find, event.opts);
-  return getTarget(target, creep) !== null;
+  return getTarget(event.target, creep) !== null;
 };
 
 const checkNoTargetAvailable = (event: NoTargetAvailableEvent) => (
   creep: Creep,
 ): boolean => {
-  const target = closest(event.find, event.opts);
-  return getTarget(target, creep) === null;
+  return getTarget(event.target, creep) === null;
 };
 
 type EventChecker = (creep: Creep) => boolean;
