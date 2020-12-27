@@ -1,42 +1,68 @@
-type ValueEqualProperty = "structureType";
-type ValueEqualValue = StructureConstant;
+type Ordering = "LT" | "LTE" | "GT" | "GTE";
+export type Equality = Ordering | "EQ" | "NEQ";
 
-export const valueEqual = (
-  property: ValueEqualProperty,
-  value: ValueEqualValue,
-) =>
-  ({
-    type: "valueEqual",
-    property,
-    value,
-  } as const);
+type OrderableProperty = "amount" | "energy" | "hits";
+type OrderablePropertyValue = number;
+type EquatableProperty = OrderableProperty | "structureType";
+type EquatablePropertyValue = OrderablePropertyValue | StructureConstant;
 
-type WithinBoundsProperty = "amount" | "energy" | "hits";
-interface WithinBoundsOpts {
-  min?: number;
-  max?: number;
-  isPercent?: boolean;
+interface ValueIsOpts {
+  isPercent: boolean;
 }
 
-export const withinBounds = (
-  property: WithinBoundsProperty,
-  opts: WithinBoundsOpts,
-) =>
-  ({
-    type: "withinBounds",
+export function valueIs(
+  operator: Ordering,
+  property: OrderableProperty,
+  propertyValue: OrderablePropertyValue,
+  opts?: ValueIsOpts,
+): {
+  type: "valueIs";
+  operator: Ordering;
+  property: OrderableProperty;
+  value: OrderablePropertyValue;
+  opts: ValueIsOpts;
+};
+
+export function valueIs(
+  operator: Equality,
+  property: EquatableProperty,
+  propertyValue: EquatablePropertyValue,
+  opts?: ValueIsOpts,
+): {
+  type: "valueIs";
+  operator: Equality;
+  property: EquatableProperty;
+  value: EquatablePropertyValue;
+  opts: ValueIsOpts;
+};
+
+export function valueIs(
+  operator: Equality,
+  property: EquatableProperty,
+  propertyValue: EquatablePropertyValue,
+  opts?: ValueIsOpts,
+): {
+  type: "valueIs";
+  operator: Equality;
+  property: EquatableProperty;
+  value: EquatablePropertyValue;
+  opts: ValueIsOpts;
+} {
+  return {
+    type: "valueIs",
+    operator,
     property,
+    value: propertyValue,
     opts: {
-      min: 0,
-      max: 1,
       isPercent: true,
       ...opts,
     },
-  } as const);
+  };
+}
 
-export type ValueEqual = ReturnType<typeof valueEqual>;
-export type WithinBounds = ReturnType<typeof withinBounds>;
+export type ValueIs = ReturnType<typeof valueIs>;
 
-export type FindFilter = ValueEqual | WithinBounds;
+export type FindFilter = ValueIs;
 
 export interface FindOpts {
   filters: FindFilter[];

@@ -1,53 +1,61 @@
 import {
+  Equality,
   FindFilter,
   FindOpts,
   ObjectTarget,
   TargetDescription,
-  ValueEqual,
-  WithinBounds,
+  ValueIs,
 } from "state/targets";
 import { Predicate, composePredicates } from "utils/utils";
 import { flushCreepCachedTarget, getCreepCachedTarget } from "memory";
 
-const parseValueEqualFilter = (filter: ValueEqual) => {
-  switch (filter.property) {
-    case "structureType":
-      return (s: StructureContainer) => s[filter.property] === filter.value;
-  }
+const valueIsOperators: Record<Equality, (a: any, b: any) => boolean> = {
+  EQ: (a, b) => a === b,
+  NEQ: (a, b) => a !== b,
+  LT: (a, b) => a < b,
+  LTE: (a, b) => a <= b,
+  GT: (a, b) => a > b,
+  GTE: (a, b) => a >= b,
 };
 
-const parseWithinBoundsFilter = (filter: WithinBounds) => {
-  const { min, max, isPercent } = filter.opts;
+const parseValueIsFilter = (filter: ValueIs): Predicate<any> => {
+  const { isPercent } = filter.opts;
   switch (filter.property) {
+    case "structureType":
+      return ({ structureType }: { structureType: StructureConstant }) => {
+        if (isPercent) {
+          throw new Error(
+            "can not use percent when filtering on structureType",
+          );
+        }
+        return valueIsOperators[filter.operator](structureType, filter.value);
+      };
     case "amount":
-      return (s: { amount: number }) => {
+      return ({ amount }: { amount: number }) => {
         if (isPercent) {
           throw new Error("can not use percent when filtering on amount");
         }
-        const value = s.amount;
-        return min <= value && value <= max;
+        return valueIsOperators[filter.operator](amount, filter.value);
       };
     case "energy":
-      return (s: { store: StoreDefinition }) => {
+      return ({ store }: { store: StoreDefinition }) => {
         const value = isPercent
-          ? s.store[RESOURCE_ENERGY] / s.store.getCapacity(RESOURCE_ENERGY)
-          : s.store[RESOURCE_ENERGY];
-        return min <= value && value <= max;
+          ? store[RESOURCE_ENERGY] / store.getCapacity(RESOURCE_ENERGY)
+          : store[RESOURCE_ENERGY];
+        return valueIsOperators[filter.operator](value, filter.value);
       };
     case "hits":
-      return (s: { hits: number; hitsMax: number }) => {
-        const value = isPercent ? s.hits / s.hitsMax : s.hits;
-        return min <= value && value <= max;
+      return ({ hits, hitsMax }: { hits: number; hitsMax: number }) => {
+        const value = isPercent ? hits / hitsMax : hits;
+        return valueIsOperators[filter.operator](value, filter.value);
       };
   }
 };
 
 const parseFindFilter = (filter: FindFilter): Predicate<any> => {
   switch (filter.type) {
-    case "valueEqual":
-      return parseValueEqualFilter(filter);
-    case "withinBounds":
-      return parseWithinBoundsFilter(filter);
+    case "valueIs":
+      return parseValueIsFilter(filter);
   }
 };
 

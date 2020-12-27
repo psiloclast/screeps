@@ -19,14 +19,7 @@ import {
   upgrade,
   withdraw,
 } from "state/actions";
-import {
-  closest,
-  object,
-  position,
-  room,
-  valueEqual,
-  withinBounds,
-} from "state/targets";
+import { closest, object, position, room, valueIs } from "state/targets";
 
 import { TowerAction } from "state/towerActions";
 import { mapByKey } from "utils/utils";
@@ -130,8 +123,8 @@ const config: Config = {
           transfer(
             closest(FIND_STRUCTURES, {
               filters: [
-                valueEqual("structureType", STRUCTURE_TOWER),
-                withinBounds("energy", { max: 0.99 }),
+                valueIs("EQ", "structureType", STRUCTURE_TOWER),
+                valueIs("LT", "energy", 1),
               ],
             }),
             RESOURCE_ENERGY,
@@ -158,7 +151,7 @@ const config: Config = {
         state(
           withdraw(
             closest(FIND_STRUCTURES, {
-              filters: [valueEqual("structureType", STRUCTURE_CONTAINER)],
+              filters: [valueIs("EQ", "structureType", STRUCTURE_CONTAINER)],
             }),
             RESOURCE_ENERGY,
           ),
@@ -177,8 +170,8 @@ const config: Config = {
           transfer(
             closest(FIND_MY_STRUCTURES, {
               filters: [
-                valueEqual("structureType", STRUCTURE_EXTENSION),
-                withinBounds("energy", { max: 0.99 }),
+                valueIs("EQ", "structureType", STRUCTURE_EXTENSION),
+                valueIs("LT", "energy", 1),
               ],
             }),
             RESOURCE_ENERGY,
@@ -188,8 +181,8 @@ const config: Config = {
               "moveTo-0",
               noTargetAvailable(FIND_MY_STRUCTURES, {
                 filters: [
-                  valueEqual("structureType", STRUCTURE_EXTENSION),
-                  withinBounds("energy", { max: 0.99 }),
+                  valueIs("EQ", "structureType", STRUCTURE_EXTENSION),
+                  valueIs("LT", "energy", 1),
                 ],
               }),
             ),
@@ -208,8 +201,8 @@ const config: Config = {
             "transfer-0",
             targetAvailable(FIND_MY_STRUCTURES, {
               filters: [
-                valueEqual("structureType", STRUCTURE_EXTENSION),
-                withinBounds("energy", { max: 0.99 }),
+                valueIs("EQ", "structureType", STRUCTURE_EXTENSION),
+                valueIs("LT", "energy", 1),
               ],
             }),
           ),
@@ -227,8 +220,8 @@ const config: Config = {
           repair(
             closest(FIND_STRUCTURES, {
               filters: [
-                withinBounds("hits", { max: 10000000, isPercent: false }),
-                withinBounds("hits", { max: 0.99 }),
+                valueIs("LTE", "hits", 10000000, { isPercent: false }),
+                valueIs("LT", "hits", 1),
               ],
             }),
           ),
@@ -237,8 +230,8 @@ const config: Config = {
               "moveTo-0",
               noTargetAvailable(FIND_STRUCTURES, {
                 filters: [
-                  withinBounds("hits", { max: 10000000, isPercent: false }),
-                  withinBounds("hits", { max: 0.99 }),
+                  valueIs("LTE", "hits", 10000000, { isPercent: false }),
+                  valueIs("LT", "hits", 1),
                 ],
               }),
             ),
@@ -257,8 +250,8 @@ const config: Config = {
             "repair-0",
             targetAvailable(FIND_STRUCTURES, {
               filters: [
-                withinBounds("hits", { max: 10000000, isPercent: false }),
-                withinBounds("hits", { max: 0.99 }),
+                valueIs("LTE", "hits", 10000000, { isPercent: false }),
+                valueIs("LT", "hits", 1),
               ],
             }),
           ),
@@ -305,26 +298,14 @@ const config: Config = {
         state(
           pickup(
             closest(FIND_DROPPED_RESOURCES, {
-              filters: [
-                withinBounds("amount", {
-                  min: 200,
-                  max: 99999999999999,
-                  isPercent: false,
-                }),
-              ],
+              filters: [valueIs("GT", "amount", 200, { isPercent: false })],
             }),
           ),
           [
             transition(
               "moveTo-0",
               noTargetAvailable(FIND_DROPPED_RESOURCES, {
-                filters: [
-                  withinBounds("amount", {
-                    min: 200,
-                    max: 99999999999999,
-                    isPercent: false,
-                  }),
-                ],
+                filters: [valueIs("GT", "amount", 200, { isPercent: false })],
               }),
             ),
             transition("transfer-0", isFull()),
@@ -334,13 +315,7 @@ const config: Config = {
           transition(
             "pickup-0",
             targetAvailable(FIND_DROPPED_RESOURCES, {
-              filters: [
-                withinBounds("amount", {
-                  min: 200,
-                  max: 99999999999999,
-                  isPercent: false,
-                }),
-              ],
+              filters: [valueIs("GT", "amount", 200, { isPercent: false })],
             }),
           ),
         ]),
