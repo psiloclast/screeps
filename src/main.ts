@@ -54,7 +54,10 @@ const replaceDeadCreeps = () =>
   });
 
 const runTower = (tower: StructureTower) => {
-  const towerAction = config.towers[tower.id].action;
+  const towerAction = config.towers[tower.id]?.action;
+  if (!towerAction) {
+    return;
+  }
   runTowerAction(towerAction)(tower);
 };
 
