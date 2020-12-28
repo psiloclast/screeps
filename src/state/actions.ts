@@ -64,7 +64,7 @@ export const transfer = (
   target:
     | ObjectTarget<FIND_CREEPS | FIND_STRUCTURES | FIND_MY_STRUCTURES>
     | string,
-  resourceType: ResourceConstant,
+  resourceType: ResourceConstant = RESOURCE_ENERGY,
   amount?: number,
 ) =>
   ({
@@ -85,7 +85,7 @@ export const withdraw = (
         FIND_STRUCTURES | FIND_MY_STRUCTURES | FIND_TOMBSTONES | FIND_RUINS
       >
     | string,
-  resourceType: ResourceConstant,
+  resourceType: ResourceConstant = RESOURCE_ENERGY,
   amount?: number,
 ) =>
   ({
