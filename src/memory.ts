@@ -10,8 +10,13 @@ export const cleanMemoryOfDeadCreeps = (): void => {
   }
 };
 
-export const getCreepState = (creep: Creep): State =>
-  config.creeps[creep.name].states[creep.memory.currentStateId];
+export const getCreepState = (creep: Creep): State => {
+  const creepConfig = config.creeps[creep.name];
+  if (!(creep.memory.currentStateId in creepConfig.states)) {
+    creep.memory.currentStateId = creepConfig.memory.currentStateId;
+  }
+  return creepConfig.states[creep.memory.currentStateId];
+};
 
 export const setCreepState = (creep: Creep, stateId: StateId): void => {
   creep.memory.currentStateId = stateId;
