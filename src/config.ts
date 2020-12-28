@@ -239,7 +239,11 @@ const config: Config = {
       },
     }),
   ]),
-  towers: {},
+  towers: {
+    e5896bc078be90f: {
+      action: "attack",
+    },
+  },
 };
 
 export default config;
