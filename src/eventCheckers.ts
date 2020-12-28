@@ -1,4 +1,5 @@
 import {
+  AtTargetEvent,
   Event,
   InRoomEvent,
   NoTargetAvailableEvent,
@@ -7,7 +8,6 @@ import {
   Transition,
 } from "state/events";
 
-import { getCreepCachedTarget } from "memory";
 import { getTarget } from "targetParser";
 
 const checkIsEmpty = (creep: Creep): boolean =>
@@ -19,9 +19,9 @@ const checkIsFull = (creep: Creep): boolean =>
 const checkInRoom = (event: InRoomEvent) => (creep: Creep): boolean =>
   creep.room.name === event.name;
 
-const checkAtTarget = (creep: Creep): boolean => {
-  const [target] = getCreepCachedTarget(creep);
-  if (target === undefined) {
+const checkAtTarget = (event: AtTargetEvent) => (creep: Creep): boolean => {
+  const target = getTarget(event.target, creep);
+  if (target === null) {
     return false;
   }
   return creep.pos.isEqualTo(target);
@@ -50,7 +50,7 @@ const checkEvent = (event: Event): EventChecker => {
     case "inRoom":
       return checkInRoom(event);
     case "atTarget":
-      return checkAtTarget;
+      return checkAtTarget(event);
     case "targetAvailable":
       return checkTargetAvailable(event);
     case "noTargetAvailable":
