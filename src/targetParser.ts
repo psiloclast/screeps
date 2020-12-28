@@ -71,6 +71,16 @@ const parseFindOpts = (findOpts: FindOpts): ScreepsFindOpts => ({
     .reduce(composePredicates, () => true),
 });
 
+const getConstantTarget = (
+  targetName: string,
+): TargetDescription<FindConstant> => {
+  const target = config.constants.targets[targetName];
+  if (target === undefined) {
+    throw new Error(`there is no constant target called ${targetName}`);
+  }
+  return target;
+};
+
 export function getTarget<F extends FindConstant = FindConstant>(
   target: ObjectTarget<F> | string,
   creep: Creep,
@@ -87,7 +97,7 @@ export function getTarget<F extends FindConstant = FindConstant>(
 ): FindTypes[F] | RoomPosition | null {
   target =
     typeof target === "string"
-      ? (config.constants.targets[target] as TargetDescription<F>)
+      ? (getConstantTarget(target) as TargetDescription<F>)
       : target;
   switch (target.type) {
     case "closest": {
