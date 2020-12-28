@@ -62,15 +62,43 @@ export function valueIs(
 
 export type ValueIs = ReturnType<typeof valueIs>;
 
-export type FindFilter = ValueIs;
+export interface NotFilter {
+  type: "not";
+  filter: FindFilter;
+}
 
-export interface FindOpts {
+export const notFilter = (filter: FindFilter): NotFilter => ({
+  type: "not",
+  filter,
+});
+
+export interface OrFilter {
+  type: "or";
   filters: FindFilter[];
 }
 
-export const defaultFindOpts = (): FindOpts => ({
-  filters: [],
+export const orFilter = (...filters: FindFilter[]): OrFilter => ({
+  type: "or",
+  filters,
 });
+
+export interface AndFilter {
+  type: "and";
+  filters: FindFilter[];
+}
+
+export const andFilter = (...filters: FindFilter[]): AndFilter => ({
+  type: "and",
+  filters,
+});
+
+export type FindFilter = ValueIs | NotFilter | OrFilter | AndFilter;
+
+export interface FindOpts {
+  filter?: FindFilter;
+}
+
+export const defaultFindOpts = (): FindOpts => ({});
 
 export interface ClosestObjectTarget<F extends FindConstant = FindConstant> {
   type: "closest";

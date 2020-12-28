@@ -1,12 +1,15 @@
 import {
+  AndFilter,
   Equality,
   FindFilter,
   FindOpts,
+  NotFilter,
   ObjectTarget,
+  OrFilter,
   TargetDescription,
   ValueIs,
 } from "state/targets";
-import { Predicate, composePredicates } from "utils/utils";
+import { Predicate, liftAnd, liftNot, liftOr } from "utils/utils";
 import { flushCreepCachedTarget, getCreepCachedTarget } from "memory";
 
 import config from "config";
@@ -54,10 +57,28 @@ const parseValueIsFilter = (filter: ValueIs): Predicate<any> => {
   }
 };
 
+const parseNotFilter = (filter: NotFilter): Predicate<any> =>
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  liftNot(parseFindFilter(filter.filter));
+
+const parseOrFilter = (filter: OrFilter): Predicate<any> =>
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  filter.filters.map(parseFindFilter).reduce(liftOr, () => false);
+
+const parseAndFilter = (filter: AndFilter): Predicate<any> =>
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  filter.filters.map(parseFindFilter).reduce(liftAnd, () => true);
+
 const parseFindFilter = (filter: FindFilter): Predicate<any> => {
   switch (filter.type) {
     case "valueIs":
       return parseValueIsFilter(filter);
+    case "not":
+      return parseNotFilter(filter);
+    case "or":
+      return parseOrFilter(filter);
+    case "and":
+      return parseAndFilter(filter);
   }
 };
 
@@ -66,9 +87,7 @@ interface ScreepsFindOpts {
 }
 
 const parseFindOpts = (findOpts: FindOpts): ScreepsFindOpts => ({
-  filter: findOpts.filters
-    .map(parseFindFilter)
-    .reduce(composePredicates, () => true),
+  filter: findOpts.filter ? parseFindFilter(findOpts.filter) : () => true,
 });
 
 const getConstantTarget = (
