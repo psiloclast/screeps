@@ -1,7 +1,7 @@
 import { LinkAction, TransferEnergyAction } from "state/linkActions";
 
 import config from "config";
-import { getTarget } from "targetParser";
+import { getTarget } from "getTarget";
 
 const runTransferEnergy = (action: TransferEnergyAction) => (
   link: StructureLink,

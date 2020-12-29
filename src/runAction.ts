@@ -13,7 +13,7 @@ import {
   WithdrawAction,
 } from "state/actions";
 
-import { getTarget } from "targetParser";
+import { getTarget } from "getTarget";
 
 const runAttack = (action: AttackAction) => (creep: Creep) => {
   const target = getTarget(action.target, creep)!;

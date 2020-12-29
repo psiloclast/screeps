@@ -1,14 +1,8 @@
 import { LinkAction, transferEnergy } from "state/linkActions";
 import { State, state } from "state";
 import { StateId, atTarget, isEmpty, isFull, transition } from "state/events";
-import {
-  TargetDescription,
-  andFilter,
-  closest,
-  object,
-  orFilter,
-  valueIs,
-} from "state/targets";
+import { TargetDescription, closest, object } from "state/targets";
+import { andFilter, orFilter, valueIs } from "state/findFilters";
 import {
   build,
   harvest,

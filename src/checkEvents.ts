@@ -8,7 +8,7 @@ import {
   Transition,
 } from "state/events";
 
-import { getTarget } from "targetParser";
+import { getTarget } from "getTarget";
 
 const checkIsEmpty = (creep: Creep): boolean =>
   creep.store[RESOURCE_ENERGY] === 0;

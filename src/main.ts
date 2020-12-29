@@ -11,11 +11,11 @@ import {
 
 import { ErrorMapper } from "utils/ErrorMapper";
 import { StateId } from "state/events";
-import { checkEvents } from "eventCheckers";
+import { checkEvents } from "checkEvents";
 import config from "config";
-import { runAction } from "actionRunners";
-import { runLinks } from "linkRunner";
-import { runTowers } from "towerRunner";
+import { runAction } from "runAction";
+import { runLinks } from "runLinks";
+import { runTowers } from "runTowers";
 
 const newState = (newStateId?: StateId): newStateId is StateId =>
   newStateId !== undefined;
