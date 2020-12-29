@@ -14,7 +14,8 @@ import { StateId } from "state/events";
 import { checkEvents } from "eventCheckers";
 import config from "config";
 import { runAction } from "actionRunners";
-import { runTowerAction } from "towerRunner";
+import { runLinks } from "linkRunner";
+import { runTowers } from "towerRunner";
 
 const newState = (newStateId?: StateId): newStateId is StateId =>
   newStateId !== undefined;
@@ -43,28 +44,15 @@ const runCreep = (creep: Creep) => {
   }
 };
 
-// Reversed because last creep definition is spawned
-const configCreeps = Object.entries(config.creeps).reverse();
-
 const replaceDeadCreeps = () =>
-  configCreeps.forEach(([name, { body, memory }]) => {
-    if (!(name in Game.creeps)) {
-      Game.spawns.Spawn1.spawnCreep(body, name, { memory });
-    }
-  });
-
-const runTower = (tower: StructureTower) => {
-  const towerAction = config.towers[tower.id]?.action;
-  if (!towerAction) {
-    return;
-  }
-  runTowerAction(towerAction)(tower);
-};
-
-const getRoomTowers = (room: Room): StructureTower[] =>
-  room.find(FIND_STRUCTURES, {
-    filter: structure => structure.structureType === STRUCTURE_TOWER,
-  }) as StructureTower[];
+  Object.entries(config.creeps)
+    // Reversed because last creep definition is spawned
+    .reverse()
+    .forEach(([name, { body, memory }]) => {
+      if (!(name in Game.creeps)) {
+        Game.spawns.Spawn1.spawnCreep(body, name, { memory });
+      }
+    });
 
 export const loop = ErrorMapper.wrapLoop(() => {
   console.log(`Current game tick is ${Game.time}`);
@@ -73,6 +61,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
   Object.values(Game.creeps).forEach(runCreep);
   Object.values(Game.rooms)
     .filter(room => room.controller?.my)
-    .flatMap(getRoomTowers)
-    .forEach(runTower);
+    .forEach(room => {
+      runTowers(room);
+      runLinks(room);
+    });
 });

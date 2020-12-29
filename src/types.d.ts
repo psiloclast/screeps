@@ -20,3 +20,8 @@ declare namespace NodeJS {
     log: any;
   }
 }
+
+interface StructureTypes {
+  [key: string]: StructureLink;
+  link: StructureLink; // STRUCTURE_LINK
+}

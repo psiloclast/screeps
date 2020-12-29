@@ -26,17 +26,24 @@ export interface CachedMetaData {
   roomName: string;
 }
 
-export const getCreepCachedTarget = <F extends FindConstant = FindConstant>(
+export const getCreepCachedTarget = <
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+>(
   creep: Creep,
-): [FindTypes[F] | RoomPosition | undefined, CachedMetaData] => {
+): [
+  FindTypes[F] | StructureTypes[S] | RoomPosition | undefined,
+  CachedMetaData,
+] => {
   const cachedTarget = creep.memory.cachedTarget;
   switch (cachedTarget?.target.type) {
     case undefined:
       return [undefined, { roomName: "" }];
     case "object":
       return [
-        Game.getObjectById(cachedTarget.target.id as Id<FindTypes[F]>) ||
-          undefined,
+        Game.getObjectById(
+          cachedTarget.target.id as Id<FindTypes[F] | StructureTypes[S]>,
+        ) || undefined,
         cachedTarget.metaData,
       ];
     case "position":
@@ -50,9 +57,15 @@ export const getCreepCachedTarget = <F extends FindConstant = FindConstant>(
   }
 };
 
-export const setCreepCachedTarget = <F extends FindConstant = FindConstant>(
+export const setCreepCachedTarget = <
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+>(
   creep: Creep,
-  target: Exclude<FindTypes[F], RoomPosition | Flag> | RoomPosition,
+  target:
+    | Exclude<FindTypes[F], RoomPosition | Flag>
+    | StructureTypes[S]
+    | RoomPosition,
 ): void => {
   if (target instanceof RoomPosition) {
     creep.memory.cachedTarget = {

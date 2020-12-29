@@ -90,10 +90,16 @@ const parseFindOpts = (findOpts: FindOpts): ScreepsFindOpts => ({
   filter: findOpts.filter ? parseFindFilter(findOpts.filter) : () => true,
 });
 
-const getConstantTarget = (
+export const getConstantTarget = <
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+>(
   targetName: string,
-): TargetDescription<FindConstant> => {
-  const target = config.constants.targets[targetName];
+): TargetDescription<F, S> => {
+  const target = config.constants.targets[targetName] as TargetDescription<
+    F,
+    S
+  >;
   if (target === undefined) {
     throw new Error(`there is no constant target called ${targetName}`);
   }
@@ -102,42 +108,58 @@ const getConstantTarget = (
 
 export function getTarget<F extends FindConstant = FindConstant>(
   target: ObjectTarget<F> | string,
-  creep: Creep,
+  object: RoomObject,
 ): FindTypes[F] | null;
 
-export function getTarget<F extends FindConstant = FindConstant>(
-  target: TargetDescription<F> | string,
-  creep: Creep,
+export function getTarget<S extends StructureConstant = StructureConstant>(
+  target: ObjectTarget<never, S> | string,
+  object: RoomObject,
+): StructureTypes[S] | null;
+
+export function getTarget<
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+>(
+  target: TargetDescription<F, S> | string,
+  object: RoomObject,
 ): RoomPosition | null;
 
-export function getTarget<F extends FindConstant = FindConstant>(
-  target: TargetDescription<F> | string,
-  creep: Creep,
-): FindTypes[F] | RoomPosition | null {
-  target =
-    typeof target === "string"
-      ? (getConstantTarget(target) as TargetDescription<F>)
-      : target;
+export function getTarget<
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+>(
+  target: TargetDescription<F, S> | string,
+  object: RoomObject,
+): FindTypes[F] | StructureTypes[S] | RoomPosition | null {
+  target = typeof target === "string" ? getConstantTarget(target) : target;
   switch (target.type) {
     case "closest": {
-      const [cachedTarget] = getCreepCachedTarget<F>(creep);
       const screepFindOpts = parseFindOpts(target.opts);
-      if (cachedTarget) {
-        if (screepFindOpts.filter(cachedTarget)) {
-          return cachedTarget;
-        } else {
-          flushCreepCachedTarget(creep);
+      if (object instanceof Creep) {
+        const creep = object;
+        const [cachedTarget] = getCreepCachedTarget<F, S>(creep);
+        if (cachedTarget) {
+          if (screepFindOpts.filter(cachedTarget)) {
+            return cachedTarget;
+          } else {
+            flushCreepCachedTarget(creep);
+          }
         }
       }
-      return creep.pos.findClosestByPath(target.find, screepFindOpts);
+      return object.pos.findClosestByPath(target.find, screepFindOpts);
     }
     case "object":
       return Game.getObjectById(target.id);
     case "position": {
-      return creep.room.getPositionAt(target.position.x, target.position.y);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return object.room!.getPositionAt(target.position.x, target.position.y);
     }
     case "room": {
-      const [cachedTarget, { roomName }] = getCreepCachedTarget<F>(creep);
+      if (!(object instanceof Creep)) {
+        throw new Error(`can not use 'room' target on non-creep`);
+      }
+      const creep = object;
+      const [cachedTarget, { roomName }] = getCreepCachedTarget<F, S>(creep);
       if (cachedTarget) {
         if (creep.room.name === roomName) {
           return cachedTarget;

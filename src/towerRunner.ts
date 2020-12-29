@@ -1,4 +1,5 @@
 import { TowerAction } from "state/towerActions";
+import config from "config";
 
 const towerHeal = (tower: StructureTower) => {
   const damagedStructures = tower.room.find(FIND_STRUCTURES, {
@@ -20,7 +21,7 @@ const towerAttack = (tower: StructureTower) => {
 
 type TowerActionRunner = (tower: StructureTower) => void;
 
-export const runTowerAction = (action: TowerAction): TowerActionRunner => {
+const runTowerAction = (action: TowerAction): TowerActionRunner => {
   switch (action) {
     case "attack":
       return towerAttack;
@@ -28,3 +29,20 @@ export const runTowerAction = (action: TowerAction): TowerActionRunner => {
       return towerHeal;
   }
 };
+
+const runTower = (tower: StructureTower) => {
+  const towerAction = config.towers[tower.id]?.action;
+  // If Tower in game, but not in config, do nothing
+  if (!towerAction) {
+    return;
+  }
+  runTowerAction(towerAction)(tower);
+};
+
+const getRoomTowers = (room: Room): StructureTower[] =>
+  room.find(FIND_STRUCTURES, {
+    filter: structure => structure.structureType === STRUCTURE_TOWER,
+  }) as StructureTower[];
+
+export const runTowers = (room: Room): void =>
+  getRoomTowers(room).forEach(runTower);

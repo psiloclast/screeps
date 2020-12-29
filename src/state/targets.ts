@@ -130,26 +130,33 @@ export const room = (name: string) =>
     },
   } as const);
 
-export interface SpecificObjectTarget<F extends FindConstant = FindConstant> {
+export interface SpecificObjectTarget<
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+> {
   type: "object";
-  id: Id<FindTypes[F]>;
+  id: Id<FindTypes[F] | StructureTypes[S]>;
 }
 
-export const object = <F extends FindConstant = FindConstant>(
-  id: Id<FindTypes[F]>,
-): SpecificObjectTarget<F> =>
+export const object = <
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+>(
+  id: Id<FindTypes[F] | StructureTypes[S]>,
+): SpecificObjectTarget<F, S> =>
   ({
     type: "object",
     id,
   } as const);
 
-export type ObjectTarget<F extends FindConstant = FindConstant> =
-  | ClosestObjectTarget<F>
-  | SpecificObjectTarget<F>;
+export type ObjectTarget<
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+> = ClosestObjectTarget<F> | SpecificObjectTarget<F, S>;
 export type PositionTarget = ReturnType<typeof position>;
 export type RoomTarget = ReturnType<typeof room>;
 
-export type TargetDescription<F extends FindConstant = FindConstant> =
-  | ObjectTarget<F>
-  | PositionTarget
-  | RoomTarget;
+export type TargetDescription<
+  F extends FindConstant = FindConstant,
+  S extends StructureConstant = StructureConstant
+> = ObjectTarget<F, S> | PositionTarget | RoomTarget;

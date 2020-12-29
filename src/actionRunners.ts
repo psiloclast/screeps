@@ -120,7 +120,7 @@ const runWithdraw = (action: WithdrawAction) => (creep: Creep) => {
 };
 
 interface ActionRunnerResult {
-  target: FindTypes[FindConstant] | null;
+  target: FindTypes[FindConstant] | StructureTypes[StructureConstant] | null;
 }
 
 type ActionRunner = (creep: Creep) => ActionRunnerResult;

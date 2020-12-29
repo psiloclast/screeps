@@ -1,3 +1,4 @@
+import { LinkAction, transferEnergy } from "state/linkActions";
 import { State, state } from "state";
 import { StateId, atTarget, isEmpty, isFull, transition } from "state/events";
 import {
@@ -45,12 +46,17 @@ interface TowerDefinition {
   action: TowerAction;
 }
 
+interface LinkDefinition {
+  action: LinkAction;
+}
+
 interface Config {
   constants: {
-    targets: Record<string, TargetDescription<FindConstant>>;
+    targets: Record<string, TargetDescription<FindConstant, StructureConstant>>;
   };
   creeps: Record<string, CreepDefinition>;
   towers: Record<string, TowerDefinition>;
+  links: Record<string, LinkDefinition>;
 }
 
 const duplicate = (times: number, data: CreepDefinition): CreepDefinition[] =>
@@ -110,23 +116,16 @@ const config: Config = {
       "dropped-resources": closest(FIND_DROPPED_RESOURCES, {
         filter: valueIs("GT", "amount", 200, { isPercent: false }),
       }),
-      "left-container": object("b8e56845e36196c" as Id<StructureContainer>),
+      "left-container": object("ab8ec675212956a" as Id<StructureContainer>),
       "right-container": object("0c3b694f6836a37" as Id<StructureContainer>),
+      "left-link": object("b959be440749e57" as Id<StructureLink>),
+      "right-link": object("642dbecf6803b3f" as Id<StructureLink>),
+      "central-link": object("bf88be51487a7be" as Id<StructureLink>),
+      "upgrader-container": object("db6e69a321d4c0b" as Id<StructureContainer>),
     },
   },
   creeps: defineCreeps([
-    // ...duplicate(2, {
-    //   role: "harvester",
-    //   body: [WORK, CARRY, MOVE],
-    //   states: statesToMap([
-    //     state(transfer("spawn"), [transition("harvest-0", isEmpty())]),
-    //     state(harvest("source"), [transition("transfer-0", isFull())]),
-    //   ]),
-    //   memory: {
-    //     currentStateId: "harvest-0",
-    //   },
-    // }),
-    // ...duplicate(2, {
+    // {
     //   role: "builder",
     //   body: [WORK, CARRY, CARRY, CARRY, MOVE, MOVE],
     //   states: statesToMap([
@@ -140,7 +139,7 @@ const config: Config = {
     //   memory: {
     //     currentStateId: "build-0",
     //   },
-    // }),
+    // },
     {
       role: "drop-harvester",
       body: [WORK, WORK, WORK, WORK, WORK, MOVE],
@@ -171,6 +170,43 @@ const config: Config = {
       role: "courier",
       body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
       states: statesToMap([
+        state(transfer("left-link"), [transition("withdraw-0", isEmpty())]),
+        state(withdraw("left-container"), [transition("transfer-0", isFull())]),
+      ]),
+      memory: {
+        currentStateId: "transfer-0",
+      },
+    },
+    {
+      role: "courier",
+      body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+      states: statesToMap([
+        state(transfer("right-link"), [transition("withdraw-0", isEmpty())]),
+        state(withdraw("right-container"), [
+          transition("transfer-0", isFull()),
+        ]),
+      ]),
+      memory: {
+        currentStateId: "transfer-0",
+      },
+    },
+    {
+      role: "courier",
+      body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+      states: statesToMap([
+        state(transfer("low-energy-storage"), [
+          transition("withdraw-0", isEmpty()),
+        ]),
+        state(withdraw("central-link"), [transition("transfer-0", isFull())]),
+      ]),
+      memory: {
+        currentStateId: "transfer-0",
+      },
+    },
+    {
+      role: "courier",
+      body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+      states: statesToMap([
         state(transfer("low-energy-structure"), [
           transition("withdraw-0", isEmpty()),
         ]),
@@ -182,19 +218,60 @@ const config: Config = {
         currentStateId: "transfer-0",
       },
     },
-    ...duplicate(2, {
+    {
+      role: "courier",
+      body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
+      states: statesToMap([
+        state(transfer("upgrader-container"), [
+          transition("withdraw-0", isEmpty()),
+        ]),
+        state(withdraw("high-energy-storage"), [
+          transition("transfer-0", isFull()),
+        ]),
+      ]),
+      memory: {
+        currentStateId: "transfer-0",
+      },
+    },
+    {
       role: "upgrader",
-      body: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE],
+      body: [
+        WORK,
+        WORK,
+        WORK,
+        WORK,
+        WORK,
+
+        WORK,
+        WORK,
+        WORK,
+        WORK,
+        WORK,
+
+        WORK,
+        WORK,
+        WORK,
+        WORK,
+        WORK,
+
+        CARRY,
+        CARRY,
+        CARRY,
+        CARRY,
+        CARRY,
+
+        MOVE,
+      ],
       states: statesToMap([
         state(upgrade(), [transition("withdraw-0", isEmpty())]),
-        state(withdraw("high-energy-storage"), [
+        state(withdraw("upgrader-container"), [
           transition("upgrade-0", isFull()),
         ]),
       ]),
       memory: {
         currentStateId: "upgrade-0",
       },
-    }),
+    },
     {
       role: "extension-filler",
       body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
@@ -208,7 +285,7 @@ const config: Config = {
         currentStateId: "transfer-0",
       },
     },
-    ...duplicate(2, {
+    {
       role: "repairer",
       body: [WORK, CARRY, CARRY, CARRY, MOVE, MOVE],
       states: statesToMap([
@@ -222,26 +299,19 @@ const config: Config = {
       memory: {
         currentStateId: "repair-0",
       },
-    }),
-    ...duplicate(3, {
-      role: "janitor",
-      body: [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE],
-      states: statesToMap([
-        state(transfer("low-energy-storage"), [
-          transition("pickup-0", isEmpty()),
-        ]),
-        state(pickup("dropped-resources"), [
-          transition("transfer-0", isFull()),
-        ]),
-      ]),
-      memory: {
-        currentStateId: "transfer-0",
-      },
-    }),
+    },
   ]),
   towers: {
     e5896bc078be90f: {
       action: "attack",
+    },
+  },
+  links: {
+    b959be440749e57: {
+      action: transferEnergy("central-link"),
+    },
+    "642dbecf6803b3f": {
+      action: transferEnergy("central-link"),
     },
   },
 };
